@@ -1,0 +1,5 @@
+#BlueJ class context
+comment0.target=LessOrEqual
+comment1.params=e1\ e2
+comment1.target=LessOrEqual(Expression,\ Expression)
+numComments=2
