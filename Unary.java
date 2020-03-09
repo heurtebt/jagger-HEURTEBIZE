@@ -4,7 +4,6 @@ public abstract class Unary implements Expression
     public Unary(Expression e){
         this.e=e;
     }
-    public Expression operande(){
-        return e;
-    }
+
+    public abstract void accept(Visitor v);
 }

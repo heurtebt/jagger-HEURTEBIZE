@@ -5,4 +5,8 @@ public class Constant implements Expression
     {
         this.i=i;
     }
+    
+    public void accept(Visitor v) {
+        v.visit(this);
+    }
 }

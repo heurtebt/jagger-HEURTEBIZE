@@ -7,4 +7,6 @@ public abstract class Binary implements Expression
         this.e1=e1;
         this.e2=e2;
     }
+
+    public abstract void accept(Visitor v);
 }

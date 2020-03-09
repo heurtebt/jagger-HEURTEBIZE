@@ -4,4 +4,8 @@ public class Divide extends Binary
     {
         super(e1,e2);
     }
+    
+    public void accept(Visitor v) {
+        v.visit(this);
+    }
 }

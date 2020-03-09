@@ -5,4 +5,8 @@ public class Negative extends Unary
     {
         super(e);
     }
+
+    public void accept(Visitor v) {
+        v.visit(this);
+    }
 }

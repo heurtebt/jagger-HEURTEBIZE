@@ -8,4 +8,6 @@ public abstract class Comparison implements Expression
         this.e1=e1;
         this.e2=e2;
     }
+
+    public abstract void accept(Visitor v);
 }
