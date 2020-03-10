@@ -101,4 +101,13 @@ public class VisitorPrettyPrinter extends Visitor
         pp = ""+c.i;
         
     }
+    public void visit(IfThenElse ite){
+        ite.e1.accept(this);
+        String tmp1 = pp;
+        ite.e2.accept(this);
+        String tmp2 = pp;
+        ite.e3.accept(this);
+        String tmp3 = pp;
+        pp = "If "+tmp1+" then {\n"+tmp2+"\n} else {\n"+tmp3+"\n}" ;
+    }
 }

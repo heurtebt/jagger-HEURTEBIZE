@@ -22,6 +22,9 @@ TOKEN:
     < NUMBER: (<DIGIT>)+ ("." (<DIGIT>)*)? >  // A decimal number.
 |   < DIGIT: ["0"-"9"] >                      // A decimal digit.
 |   < EOL: "\n" >                             // End of line.
+|   < IF: "if" >                              // If.
+|   < THEN: "then" >                          // Then.
+|   < ELSE: "else" >                          // Else.
 }
 
 // Main lopp: read expressions on a line until end of file.
@@ -42,19 +45,30 @@ void mainloop():
     <EOF>
 }
 
+//
+
+//Expression (If-Then-Else)*
+//Eite -> 'if' Ec 'then' Eite 'else' Eite
+Expression expression():
+{Expression a,b,c;}
+{
+    <IF> a=expressionComp() <THEN> b=expression() <ELSE> c=expression() { return new IfThenElse(a,b,c); }
+    | a=expressionComp() { return a; }
+}
+
 // Expression (comparison).
 // Ec -> E ('='E | '<>'E | '<'E | '>'E | '>='E | '<='E)*
-Expression expression():
+Expression expressionComp():
 { Expression a,b; }
 {
     a=expressionAddSub()
     (
-      "=" b=expression() { a = new Equal(a,b); }
-    | "<>" b=expression() { a = new NotEqual(a,b); }
-    | "<" b=expression() { a = new Less(a,b); }
-    | ">" b=expression() { a = new More(a,b); }
-    | ">=" b=expression() { a = new MoreOrEqual(a,b); }
-    | "<=" b=expression() { a = new LessOrEqual(a,b); }
+      "=" b=expressionComp() { a = new Equal(a,b); }
+    | "<>" b=expressionComp() { a = new NotEqual(a,b); }
+    | "<" b=expressionComp() { a = new Less(a,b); }
+    | ">" b=expressionComp() { a = new More(a,b); }
+    | ">=" b=expressionComp() { a = new MoreOrEqual(a,b); }
+    | "<=" b=expressionComp() { a = new LessOrEqual(a,b); }
     )? { return a; }
 }
 

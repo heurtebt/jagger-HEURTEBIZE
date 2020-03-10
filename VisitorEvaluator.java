@@ -101,4 +101,21 @@ public class VisitorEvaluator extends Visitor
         ev = c.i;
 
     }
+
+    public void visit(IfThenElse ite){
+        ite.e1.accept(this);
+        Float tmp= ev;
+        switch (tmp.intValue()){
+            case 1:{
+                ite.e2.accept(this);
+                break;
+            }
+            case 0:{
+                ite.e3.accept(this);
+                break;
+            }
+            default:
+            ev = -1;
+        }
+    }
 }
