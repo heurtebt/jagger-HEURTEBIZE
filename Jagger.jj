@@ -25,6 +25,7 @@ TOKEN:
 |   < IF: "if" >                              // If.
 |   < THEN: "then" >                          // Then.
 |   < ELSE: "else" >                          // Else.
+|   <PRINT: "print" >                         // Print keyword.
 }
 
 // Main lopp: read expressions on a line until end of file.
@@ -39,7 +40,7 @@ void mainloop():
         VisitorEvaluator eval = new VisitorEvaluator();
         a.accept(pp);
         a.accept(eval);
-        System.out.println(pp.prettyPrint()+"\n=>"+eval.evaluator());
+        System.out.println(pp.prettyPrint()+"=>"+eval.evaluator());
       }
     )*
     <EOF>
@@ -47,12 +48,21 @@ void mainloop():
 
 //
 
-//Expression (If-Then-Else)*
-//Eite -> 'if' Ec 'then' Eite 'else' Eite
+//Expression (Print)
+//Ep -> 'print(' Eite ')'|Eite
 Expression expression():
+{Expression a;}
+{
+    <PRINT> "(" a=expressionITE() ")" { return new Print(a); }
+    | a=expressionITE() { return a; }
+}
+
+//Expression (If-Then-Else)*
+//Eite -> 'if' Ec 'then' Eite 'else' Eite | Ec
+Expression expressionITE():
 {Expression a,b,c;}
 {
-    <IF> a=expressionComp() <THEN> b=expression() <ELSE> c=expression() { return new IfThenElse(a,b,c); }
+    <IF> a=expressionComp() <THEN> b=expressionITE() <ELSE> c=expressionITE() { return new IfThenElse(a,b,c); }
     | a=expressionComp() { return a; }
 }
 

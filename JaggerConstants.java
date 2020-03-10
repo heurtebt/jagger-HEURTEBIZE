@@ -20,6 +20,8 @@ public interface JaggerConstants {
   int THEN = 8;
   /** RegularExpression Id. */
   int ELSE = 9;
+  /** RegularExpression Id. */
+  int PRINT = 10;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -36,6 +38,9 @@ public interface JaggerConstants {
     "\"if\"",
     "\"then\"",
     "\"else\"",
+    "\"print\"",
+    "\"(\"",
+    "\")\"",
     "\"=\"",
     "\"<>\"",
     "\"<\"",
@@ -46,8 +51,6 @@ public interface JaggerConstants {
     "\"-\"",
     "\"*\"",
     "\"/\"",
-    "\"(\"",
-    "\")\"",
   };
 
 }

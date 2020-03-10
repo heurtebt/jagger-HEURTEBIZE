@@ -15,4 +15,5 @@ public abstract class Visitor
     public abstract void visit(LessOrEqual leq);
     public abstract void visit(Constant c);
     public abstract void visit(IfThenElse ite);
+    public abstract void visit(Print p);
 }

@@ -2,7 +2,7 @@ public class VisitorPrettyPrinter extends Visitor
 {
     private String pp;
     public String prettyPrint(){
-        return pp;
+        return (pp.isEmpty())?pp:pp+"\n";
     }
 
     public void visit(Negative n){
@@ -98,9 +98,9 @@ public class VisitorPrettyPrinter extends Visitor
     }
 
     public void visit(Constant c){
-        pp = ""+c.i;
-        
+        pp = ""+c.i;        
     }
+
     public void visit(IfThenElse ite){
         ite.e1.accept(this);
         String tmp1 = pp;
@@ -108,6 +108,12 @@ public class VisitorPrettyPrinter extends Visitor
         String tmp2 = pp;
         ite.e3.accept(this);
         String tmp3 = pp;
-        pp = "If "+tmp1+" then {\n"+tmp2+"\n} else {\n"+tmp3+"\n}" ;
+        pp = "if "+tmp1+" then {"+tmp2+"} else {"+tmp3+"}" ;
+    }
+
+    public void visit(Print p){
+        p.e.accept(this);
+        pp="";
+        //pp = "print("+pp+")";        
     }
 }

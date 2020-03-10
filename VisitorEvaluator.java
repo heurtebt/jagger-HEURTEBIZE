@@ -118,4 +118,9 @@ public class VisitorEvaluator extends Visitor
             ev = -1;
         }
     }
+
+    public void visit(Print p){
+        p.e.accept(this);
+    }
+
 }
