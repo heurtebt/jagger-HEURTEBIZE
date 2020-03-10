@@ -27,43 +27,75 @@ TOKEN:
 // Main lopp: read expressions on a line until end of file.
 //     mainloop → (expression <EOL>)* <EOF>
 void mainloop():
-{ double a; }
+{ Expression a; }
 {
     (
-      a=expression() <EOL> { System.out.println(a); }
+      a=expression() <EOL>
+      {
+        VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
+        VisitorEvaluator eval = new VisitorEvaluator();
+        a.accept(pp);
+        a.accept(eval);
+        System.out.println(pp.prettyPrint()+"\n=>"+eval.evaluator());
+      }
     )*
     <EOF>
 }
 
+// Expression (comparison).
+// Ec -> E ('='E | '<>'E | '<'E | '>'E | '>='E | '<='E)*
+Expression expression():
+{ Expression a,b; }
+{
+    a=expressionAddSub()
+    (
+      "=" b=expression() { a = new Equal(a,b); }
+    | "<>" b=expression() { a = new NotEqual(a,b); }
+    | "<" b=expression() { a = new Less(a,b); }
+    | ">" b=expression() { a = new More(a,b); }
+    | ">=" b=expression() { a = new MoreOrEqual(a,b); }
+    | "<=" b=expression() { a = new LessOrEqual(a,b); }
+    )? { return a; }
+}
+
 // Expression (the axiom).
 // E -> T ('+'T | '-'T)*
-double expression():
-{ double a,b; }
+Expression expressionAddSub():
+{ Expression a,b; }
 {
     a=term()
     (
-      "+" b=expression() { a += b; }
-    | "-" b=expression() { a -= b; }
+      "+" b=expressionAddSub() { a = new Add(a,b); }
+    | "-" b=expressionAddSub() { a = new Substract(a,b); }
     )? { return a; }
 }
 
 // Term.
-// T -> F ('*'F | '/'F)*
-double term():
-{ double a,b; }
+// T -> U ('*'U | '/'U)*
+Expression term():
+{ Expression a,b; }
 {
-    a=factor()
+    a=unary()
     (
-      "*" b=factor() { a *= b; }
-    | "/" b=factor() { a /= b; }
+      "*" b=factor() { a = new Multiply(a,b); }
+    | "/" b=factor() { a = new Divide(a,b); }
     )* { return a; }
+}
+
+//Unary.
+//U -> ('-'F) | F
+Expression unary():
+{Expression a;}
+{
+    "-" a=factor() { return new Negative(a); }
+    | a=factor() { return new Positive(a); }
 }
 
 // Factor of an expression.
 // F -> <NUMBER> | "(" E ")"
-double factor():
-{ Token t; double e; }
+Expression factor():
+{ Token t; Expression e; }
 {
-      t=<NUMBER> { return Double.parseDouble(t.toString()); }
+      t=<NUMBER> { return new Constant(Float.parseFloat(t.toString())); }
     | "(" e=expression() ")" { return e; }
 }

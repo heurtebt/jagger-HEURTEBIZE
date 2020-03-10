@@ -9,12 +9,13 @@ public class Jagger implements JaggerConstants {
 
     // Main lopp: read expressions on a line until end of file.
     //     mainloop → (expression <EOL>)* <EOF>
-    static final public void mainloop() throws ParseException {double a;
+    static final public void mainloop() throws ParseException {Expression a;
         label_1:
         while (true) {
             switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
                 case NUMBER:
-                case 11:{
+                case 14:
+                case 17:{
                     ;
                     break;
                 }
@@ -24,29 +25,61 @@ public class Jagger implements JaggerConstants {
             }
             a = expression();
             jj_consume_token(EOL);
-            System.out.println(a);
+            VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
+            VisitorEvaluator eval = new VisitorEvaluator();
+            a.accept(pp);
+            a.accept(eval);
+            System.out.println(pp.prettyPrint()+"\n=>"+eval.evaluator());
         }
         jj_consume_token(0);
     }
 
-    // Expression (the axiom).
-    // E -> T ('+'T | '-'T)*
-    static final public double expression() throws ParseException {double a,b;
-        a = term();
+    // Expression (comparison).
+    // Ec -> E ('='E | '<>'E | '<'E | '>'E | '>='E | '<='E)*
+    static final public Expression expression() throws ParseException {Expression a,b;
+        a = expressionAddSub();
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
             case 7:
-            case 8:{
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+            case 12:{
                 switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
                     case 7:{
                         jj_consume_token(7);
                         b = expression();
-                        a += b;
+                        a = new Equal(a,b);
                         break;
                     }
                     case 8:{
                         jj_consume_token(8);
                         b = expression();
-                        a -= b;
+                        a = new NotEqual(a,b);
+                        break;
+                    }
+                    case 9:{
+                        jj_consume_token(9);
+                        b = expression();
+                        a = new Less(a,b);
+                        break;
+                    }
+                    case 10:{
+                        jj_consume_token(10);
+                        b = expression();
+                        a = new More(a,b);
+                        break;
+                    }
+                    case 11:{
+                        jj_consume_token(11);
+                        b = expression();
+                        a = new MoreOrEqual(a,b);
+                        break;
+                    }
+                    case 12:{
+                        jj_consume_token(12);
+                        b = expression();
+                        a = new LessOrEqual(a,b);
                         break;
                     }
                     default:
@@ -64,37 +97,72 @@ public class Jagger implements JaggerConstants {
         throw new Error("Missing return statement in function");
     }
 
+    // Expression (the axiom).
+    // E -> T ('+'T | '-'T)*
+    static final public Expression expressionAddSub() throws ParseException {Expression a,b;
+        a = term();
+        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+            case 13:
+            case 14:{
+                switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+                    case 13:{
+                        jj_consume_token(13);
+                        b = expressionAddSub();
+                        a = new Add(a,b);
+                        break;
+                    }
+                    case 14:{
+                        jj_consume_token(14);
+                        b = expressionAddSub();
+                        a = new Substract(a,b);
+                        break;
+                    }
+                    default:
+                    jj_la1[3] = jj_gen;
+                    jj_consume_token(-1);
+                    throw new ParseException();
+                }
+                break;
+            }
+            default:
+            jj_la1[4] = jj_gen;
+            ;
+        }
+        {if ("" != null) return a;}
+        throw new Error("Missing return statement in function");
+    }
+
     // Term.
-    // T -> F ('*'F | '/'F)*
-    static final public double term() throws ParseException {double a,b;
-        a = factor();
+    // T -> U ('*'U | '/'U)*
+    static final public Expression term() throws ParseException {Expression a,b;
+        a = unary();
         label_2:
         while (true) {
             switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-                case 9:
-                case 10:{
+                case 15:
+                case 16:{
                     ;
                     break;
                 }
                 default:
-                jj_la1[3] = jj_gen;
+                jj_la1[5] = jj_gen;
                 break label_2;
             }
             switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-                case 9:{
-                    jj_consume_token(9);
+                case 15:{
+                    jj_consume_token(15);
                     b = factor();
-                    a *= b;
+                    a = new Multiply(a,b);
                     break;
                 }
-                case 10:{
-                    jj_consume_token(10);
+                case 16:{
+                    jj_consume_token(16);
                     b = factor();
-                    a /= b;
+                    a = new Divide(a,b);
                     break;
                 }
                 default:
-                jj_la1[4] = jj_gen;
+                jj_la1[6] = jj_gen;
                 jj_consume_token(-1);
                 throw new ParseException();
             }
@@ -103,24 +171,48 @@ public class Jagger implements JaggerConstants {
         throw new Error("Missing return statement in function");
     }
 
+    //Unary.
+    //U -> ('-'F) | F
+    static final public Expression unary() throws ParseException {Expression a;
+        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+            case 14:{
+                jj_consume_token(14);
+                a = factor();
+                {if ("" != null) return new Negative(a);}
+                break;
+            }
+            case NUMBER:
+            case 17:{
+                a = factor();
+                {if ("" != null) return new Positive(a);}
+                break;
+            }
+            default:
+            jj_la1[7] = jj_gen;
+            jj_consume_token(-1);
+            throw new ParseException();
+        }
+        throw new Error("Missing return statement in function");
+    }
+
     // Factor of an expression.
     // F -> <NUMBER> | "(" E ")"
-    static final public double factor() throws ParseException {Token t; double e;
+    static final public Expression factor() throws ParseException {Token t; Expression e;
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
             case NUMBER:{
                 t = jj_consume_token(NUMBER);
-                {if ("" != null) return Double.parseDouble(t.toString());}
+                {if ("" != null) return new Constant(Float.parseFloat(t.toString()));}
                 break;
             }
-            case 11:{
-                jj_consume_token(11);
+            case 17:{
+                jj_consume_token(17);
                 e = expression();
-                jj_consume_token(12);
+                jj_consume_token(18);
                 {if ("" != null) return e;}
                 break;
             }
             default:
-            jj_la1[5] = jj_gen;
+            jj_la1[8] = jj_gen;
             jj_consume_token(-1);
             throw new ParseException();
         }
@@ -137,13 +229,13 @@ public class Jagger implements JaggerConstants {
     static public Token jj_nt;
     static private int jj_ntk;
     static private int jj_gen;
-    static final private int[] jj_la1 = new int[6];
+    static final private int[] jj_la1 = new int[9];
     static private int[] jj_la1_0;
     static {
         jj_la1_init_0();
     }
     private static void jj_la1_init_0() {
-        jj_la1_0 = new int[] {0x810,0x180,0x180,0x600,0x600,0x810,};
+        jj_la1_0 = new int[] {0x24010,0x1f80,0x1f80,0x6000,0x6000,0x18000,0x18000,0x24010,0x20010,};
     }
 
     /** Constructor with InputStream. */
@@ -165,7 +257,7 @@ public class Jagger implements JaggerConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 6; i++) jj_la1[i] = -1;
+        for (int i = 0; i < 9; i++) jj_la1[i] = -1;
     }
 
     /** Reinitialise. */
@@ -180,7 +272,7 @@ public class Jagger implements JaggerConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 6; i++) jj_la1[i] = -1;
+        for (int i = 0; i < 9; i++) jj_la1[i] = -1;
     }
 
     /** Constructor. */
@@ -197,7 +289,7 @@ public class Jagger implements JaggerConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 6; i++) jj_la1[i] = -1;
+        for (int i = 0; i < 9; i++) jj_la1[i] = -1;
     }
 
     /** Reinitialise. */
@@ -215,7 +307,7 @@ public class Jagger implements JaggerConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 6; i++) jj_la1[i] = -1;
+        for (int i = 0; i < 9; i++) jj_la1[i] = -1;
     }
 
     /** Constructor with generated Token Manager. */
@@ -231,7 +323,7 @@ public class Jagger implements JaggerConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 6; i++) jj_la1[i] = -1;
+        for (int i = 0; i < 9; i++) jj_la1[i] = -1;
     }
 
     /** Reinitialise. */
@@ -240,7 +332,7 @@ public class Jagger implements JaggerConstants {
         token = new Token();
         jj_ntk = -1;
         jj_gen = 0;
-        for (int i = 0; i < 6; i++) jj_la1[i] = -1;
+        for (int i = 0; i < 9; i++) jj_la1[i] = -1;
     }
 
     static private Token jj_consume_token(int kind) throws ParseException {
@@ -290,12 +382,12 @@ public class Jagger implements JaggerConstants {
     /** Generate ParseException. */
     static public ParseException generateParseException() {
         jj_expentries.clear();
-        boolean[] la1tokens = new boolean[13];
+        boolean[] la1tokens = new boolean[19];
         if (jj_kind >= 0) {
             la1tokens[jj_kind] = true;
             jj_kind = -1;
         }
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 9; i++) {
             if (jj_la1[i] == jj_gen) {
                 for (int j = 0; j < 32; j++) {
                     if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -304,7 +396,7 @@ public class Jagger implements JaggerConstants {
                 }
             }
         }
-        for (int i = 0; i < 13; i++) {
+        for (int i = 0; i < 19; i++) {
             if (la1tokens[i]) {
                 jj_expentry = new int[1];
                 jj_expentry[0] = i;
