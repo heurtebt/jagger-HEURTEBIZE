@@ -100,6 +100,10 @@ public class VisitorPrettyPrinter extends Visitor
     public void visit(Constant c){
         pp = ""+c.i;        
     }
+    
+    public void visit(ConstantString cs){
+        pp = ""+cs.i;        
+    }
 
     public void visit(IfThenElse ite){
         ite.e1.accept(this);
