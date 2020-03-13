@@ -1,10 +1,10 @@
 Jagger:
-	java -cp ./javacc.jar javacc jagger.jj
+	java -cp ./javacc.jar javacc Jagger.jj
 	javac *.java
 	java Jagger
 
 check:
-	java -cp ./javacc.jar javacc jagger.jj
+	java -cp ./javacc.jar javacc Jagger.jj
 	javac *.java
 check_OK: check
 	java Jagger < test_OK.txt

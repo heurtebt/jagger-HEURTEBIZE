@@ -7,483 +7,504 @@ public class Jagger implements JaggerConstants {
         parser.mainloop();
     }
 
-    // Main lopp: read expressions on a line until end of file.
-    //     mainloop → (expression <EOL>)* <EOF>
-    static final public void mainloop() throws ParseException {Expression a;
-        label_1:
-        while (true) {
-            switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-                case NUMBER:
-                case IF:
-                case PRINT:
-                case 11:
-                case 20:{
-                    ;
-                    break;
+// Main lopp: read expressions on a line until end of file.
+//     mainloop → (expression <EOL>)* <EOF>
+  static final public void mainloop() throws ParseException {Expression a;
+    label_1:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case NUMBER:
+      case STRING:
+      case IF:
+      case PRINT:
+      case 12:
+      case 21:{
+        ;
+        break;
+        }
+      default:
+        jj_la1[0] = jj_gen;
+        break label_1;
+      }
+      a = expression();
+      jj_consume_token(EOL);
+VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
+        VisitorTypeChecker tp = new VisitorTypeChecker();
+        a.accept(pp);
+        a.accept(tp);
+        if(!tp.hasError()){
+                        VisitorEvaluator eval = new VisitorEvaluator();
+                        a.accept(eval);
+                        System.out.println(pp.prettyPrint()+"=>"+eval.evaluator());
+                }else{
+                        System.out.println("The Type Checker found an error!");
                 }
-                default:
-                jj_la1[0] = jj_gen;
-                break label_1;
-            }
-            a = expression();
-            jj_consume_token(EOL);
-            VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
-            VisitorEvaluator eval = new VisitorEvaluator();
-            a.accept(pp);
-            a.accept(eval);
-            System.out.println(pp.prettyPrint()+"=>"+eval.evaluator());
+    }
+    jj_consume_token(0);
+}
+
+//
+
+//Expression (Print)
+//Ep -> 'print(' Eite ')'|Eite
+  static final public Expression expression() throws ParseException {Expression a;
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case PRINT:{
+      jj_consume_token(PRINT);
+      jj_consume_token(12);
+      a = expressionITE();
+      jj_consume_token(13);
+{if ("" != null) return new Print(a);}
+      break;
+      }
+    case NUMBER:
+    case STRING:
+    case IF:
+    case 12:
+    case 21:{
+      a = expressionITE();
+{if ("" != null) return a;}
+      break;
+      }
+    default:
+      jj_la1[1] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+    throw new Error("Missing return statement in function");
+}
+
+//Expression (If-Then-Else)*
+//Eite -> 'if' Ec 'then' Eite 'else' Eite | Ec
+  static final public Expression expressionITE() throws ParseException {Expression a,b,c;
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case IF:{
+      jj_consume_token(IF);
+      a = expressionITE();
+      jj_consume_token(THEN);
+      b = expressionITE();
+      jj_consume_token(ELSE);
+      c = expressionITE();
+{if ("" != null) return new IfThenElse(a,b,c);}
+      break;
+      }
+    case NUMBER:
+    case STRING:
+    case 12:
+    case 21:{
+      a = expressionComp();
+{if ("" != null) return a;}
+      break;
+      }
+    default:
+      jj_la1[2] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+    throw new Error("Missing return statement in function");
+}
+
+// Expression (comparison).
+// Ec -> E ('='E | '<>'E | '<'E | '>'E | '>='E | '<='E)*
+  static final public Expression expressionComp() throws ParseException {Expression a,b;
+    a = expressionAddSub();
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+    case 18:
+    case 19:{
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case 14:{
+        jj_consume_token(14);
+        b = expressionComp();
+a = new Equal(a,b);
+        break;
         }
-        jj_consume_token(0);
-    }
-
-    //
-
-    //Expression (Print)
-    //Ep -> 'print(' Eite ')'|Eite
-    static final public Expression expression() throws ParseException {Expression a;
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-            case PRINT:{
-                jj_consume_token(PRINT);
-                jj_consume_token(11);
-                a = expressionITE();
-                jj_consume_token(12);
-                {if ("" != null) return new Print(a);}
-                break;
-            }
-            case NUMBER:
-            case IF:
-            case 11:
-            case 20:{
-                a = expressionITE();
-                {if ("" != null) return a;}
-                break;
-            }
-            default:
-            jj_la1[1] = jj_gen;
-            jj_consume_token(-1);
-            throw new ParseException();
+      case 15:{
+        jj_consume_token(15);
+        b = expressionComp();
+a = new NotEqual(a,b);
+        break;
         }
-        throw new Error("Missing return statement in function");
-    }
-
-    //Expression (If-Then-Else)*
-    //Eite -> 'if' Ec 'then' Eite 'else' Eite | Ec
-    static final public Expression expressionITE() throws ParseException {Expression a,b,c;
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-            case IF:{
-                jj_consume_token(IF);
-                a = expressionComp();
-                jj_consume_token(THEN);
-                b = expressionITE();
-                jj_consume_token(ELSE);
-                c = expressionITE();
-                {if ("" != null) return new IfThenElse(a,b,c);}
-                break;
-            }
-            case NUMBER:
-            case 11:
-            case 20:{
-                a = expressionComp();
-                {if ("" != null) return a;}
-                break;
-            }
-            default:
-            jj_la1[2] = jj_gen;
-            jj_consume_token(-1);
-            throw new ParseException();
+      case 16:{
+        jj_consume_token(16);
+        b = expressionComp();
+a = new Less(a,b);
+        break;
         }
-        throw new Error("Missing return statement in function");
-    }
-
-    // Expression (comparison).
-    // Ec -> E ('='E | '<>'E | '<'E | '>'E | '>='E | '<='E)*
-    static final public Expression expressionComp() throws ParseException {Expression a,b;
-        a = expressionAddSub();
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-            case 13:
-            case 14:
-            case 15:
-            case 16:
-            case 17:
-            case 18:{
-                switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-                    case 13:{
-                        jj_consume_token(13);
-                        b = expressionComp();
-                        a = new Equal(a,b);
-                        break;
-                    }
-                    case 14:{
-                        jj_consume_token(14);
-                        b = expressionComp();
-                        a = new NotEqual(a,b);
-                        break;
-                    }
-                    case 15:{
-                        jj_consume_token(15);
-                        b = expressionComp();
-                        a = new Less(a,b);
-                        break;
-                    }
-                    case 16:{
-                        jj_consume_token(16);
-                        b = expressionComp();
-                        a = new More(a,b);
-                        break;
-                    }
-                    case 17:{
-                        jj_consume_token(17);
-                        b = expressionComp();
-                        a = new MoreOrEqual(a,b);
-                        break;
-                    }
-                    case 18:{
-                        jj_consume_token(18);
-                        b = expressionComp();
-                        a = new LessOrEqual(a,b);
-                        break;
-                    }
-                    default:
-                    jj_la1[3] = jj_gen;
-                    jj_consume_token(-1);
-                    throw new ParseException();
-                }
-                break;
-            }
-            default:
-            jj_la1[4] = jj_gen;
-            ;
+      case 17:{
+        jj_consume_token(17);
+        b = expressionComp();
+a = new More(a,b);
+        break;
         }
-        {if ("" != null) return a;}
-        throw new Error("Missing return statement in function");
-    }
-
-    // Expression (the axiom).
-    // E -> T ('+'T | '-'T)*
-    static final public Expression expressionAddSub() throws ParseException {Expression a,b;
-        a = term();
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-            case 19:
-            case 20:{
-                switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-                    case 19:{
-                        jj_consume_token(19);
-                        b = expressionAddSub();
-                        a = new Add(a,b);
-                        break;
-                    }
-                    case 20:{
-                        jj_consume_token(20);
-                        b = expressionAddSub();
-                        a = new Substract(a,b);
-                        break;
-                    }
-                    default:
-                    jj_la1[5] = jj_gen;
-                    jj_consume_token(-1);
-                    throw new ParseException();
-                }
-                break;
-            }
-            default:
-            jj_la1[6] = jj_gen;
-            ;
+      case 18:{
+        jj_consume_token(18);
+        b = expressionComp();
+a = new MoreOrEqual(a,b);
+        break;
         }
-        {if ("" != null) return a;}
-        throw new Error("Missing return statement in function");
-    }
-
-    // Term.
-    // T -> U ('*'U | '/'U)*
-    static final public Expression term() throws ParseException {Expression a,b;
-        a = unary();
-        label_2:
-        while (true) {
-            switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-                case 21:
-                case 22:{
-                    ;
-                    break;
-                }
-                default:
-                jj_la1[7] = jj_gen;
-                break label_2;
-            }
-            switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-                case 21:{
-                    jj_consume_token(21);
-                    b = factor();
-                    a = new Multiply(a,b);
-                    break;
-                }
-                case 22:{
-                    jj_consume_token(22);
-                    b = factor();
-                    a = new Divide(a,b);
-                    break;
-                }
-                default:
-                jj_la1[8] = jj_gen;
-                jj_consume_token(-1);
-                throw new ParseException();
-            }
+      case 19:{
+        jj_consume_token(19);
+        b = expressionComp();
+a = new LessOrEqual(a,b);
+        break;
         }
-        {if ("" != null) return a;}
-        throw new Error("Missing return statement in function");
+      default:
+        jj_la1[3] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+      break;
+      }
+    default:
+      jj_la1[4] = jj_gen;
+      ;
     }
+{if ("" != null) return a;}
+    throw new Error("Missing return statement in function");
+}
 
-    //Unary.
-    //U -> ('-'F) | F
-    static final public Expression unary() throws ParseException {Expression a;
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-            case 20:{
-                jj_consume_token(20);
-                a = factor();
-                {if ("" != null) return new Negative(a);}
-                break;
-            }
-            case NUMBER:
-            case 11:{
-                a = factor();
-                {if ("" != null) return new Positive(a);}
-                break;
-            }
-            default:
-            jj_la1[9] = jj_gen;
-            jj_consume_token(-1);
-            throw new ParseException();
+// Expression (the axiom).
+// E -> T ('+'T | '-'T)*
+  static final public Expression expressionAddSub() throws ParseException {Expression a,b;
+    a = term();
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case 20:
+    case 21:{
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case 20:{
+        jj_consume_token(20);
+        b = expressionAddSub();
+a = new Add(a,b);
+        break;
         }
-        throw new Error("Missing return statement in function");
-    }
-
-    // Factor of an expression.
-    // F -> <NUMBER> | "(" E ")"
-    static final public Expression factor() throws ParseException {Token t; Expression e;
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-            case NUMBER:{
-                t = jj_consume_token(NUMBER);
-                {if ("" != null) return new Constant(Float.parseFloat(t.toString()));}
-                break;
-            }
-            case 11:{
-                jj_consume_token(11);
-                e = expression();
-                jj_consume_token(12);
-                {if ("" != null) return e;}
-                break;
-            }
-            default:
-            jj_la1[10] = jj_gen;
-            jj_consume_token(-1);
-            throw new ParseException();
+      case 21:{
+        jj_consume_token(21);
+        b = expressionAddSub();
+a = new Substract(a,b);
+        break;
         }
-        throw new Error("Missing return statement in function");
+      default:
+        jj_la1[5] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+      break;
+      }
+    default:
+      jj_la1[6] = jj_gen;
+      ;
     }
+{if ("" != null) return a;}
+    throw new Error("Missing return statement in function");
+}
 
-    static private boolean jj_initialized_once = false;
-    /** Generated Token Manager. */
-    static public JaggerTokenManager token_source;
-    static SimpleCharStream jj_input_stream;
-    /** Current token. */
-    static public Token token;
-    /** Next token. */
-    static public Token jj_nt;
-    static private int jj_ntk;
-    static private int jj_gen;
-    static final private int[] jj_la1 = new int[11];
-    static private int[] jj_la1_0;
-    static {
-        jj_la1_init_0();
-    }
-    private static void jj_la1_init_0() {
-        jj_la1_0 = new int[] {0x100c90,0x100c90,0x100890,0x7e000,0x7e000,0x180000,0x180000,0x600000,0x600000,0x100810,0x810,};
-    }
-
-    /** Constructor with InputStream. */
-    public Jagger(java.io.InputStream stream) {
-        this(stream, null);
-    }
-
-    /** Constructor with InputStream and supplied encoding */
-    public Jagger(java.io.InputStream stream, String encoding) {
-        if (jj_initialized_once) {
-            System.out.println("ERROR: Second call to constructor of static parser.  ");
-            System.out.println("	   You must either use ReInit() or set the JavaCC option STATIC to false");
-            System.out.println("	   during parser generation.");
-            throw new Error();
+// Term.
+// T -> U ('*'U | '/'U)*
+  static final public Expression term() throws ParseException {Expression a,b;
+    a = unary();
+    label_2:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case 22:
+      case 23:{
+        ;
+        break;
         }
-        jj_initialized_once = true;
-        try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
-        token_source = new JaggerTokenManager(jj_input_stream);
-        token = new Token();
-        jj_ntk = -1;
-        jj_gen = 0;
-        for (int i = 0; i < 11; i++) jj_la1[i] = -1;
-    }
-
-    /** Reinitialise. */
-    static public void ReInit(java.io.InputStream stream) {
-        ReInit(stream, null);
-    }
-
-    /** Reinitialise. */
-    static public void ReInit(java.io.InputStream stream, String encoding) {
-        try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
-        token_source.ReInit(jj_input_stream);
-        token = new Token();
-        jj_ntk = -1;
-        jj_gen = 0;
-        for (int i = 0; i < 11; i++) jj_la1[i] = -1;
-    }
-
-    /** Constructor. */
-    public Jagger(java.io.Reader stream) {
-        if (jj_initialized_once) {
-            System.out.println("ERROR: Second call to constructor of static parser. ");
-            System.out.println("	   You must either use ReInit() or set the JavaCC option STATIC to false");
-            System.out.println("	   during parser generation.");
-            throw new Error();
+      default:
+        jj_la1[7] = jj_gen;
+        break label_2;
+      }
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case 22:{
+        jj_consume_token(22);
+        b = factor();
+a = new Multiply(a,b);
+        break;
         }
-        jj_initialized_once = true;
-        jj_input_stream = new SimpleCharStream(stream, 1, 1);
-        token_source = new JaggerTokenManager(jj_input_stream);
-        token = new Token();
-        jj_ntk = -1;
-        jj_gen = 0;
-        for (int i = 0; i < 11; i++) jj_la1[i] = -1;
-    }
-
-    /** Reinitialise. */
-    static public void ReInit(java.io.Reader stream) {
-        if (jj_input_stream == null) {
-            jj_input_stream = new SimpleCharStream(stream, 1, 1);
-        } else {
-            jj_input_stream.ReInit(stream, 1, 1);
+      case 23:{
+        jj_consume_token(23);
+        b = factor();
+a = new Divide(a,b);
+        break;
         }
-        if (token_source == null) {
-            token_source = new JaggerTokenManager(jj_input_stream);
-        }
-
-        token_source.ReInit(jj_input_stream);
-        token = new Token();
-        jj_ntk = -1;
-        jj_gen = 0;
-        for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+      default:
+        jj_la1[8] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
     }
+{if ("" != null) return a;}
+    throw new Error("Missing return statement in function");
+}
 
-    /** Constructor with generated Token Manager. */
-    public Jagger(JaggerTokenManager tm) {
-        if (jj_initialized_once) {
-            System.out.println("ERROR: Second call to constructor of static parser. ");
-            System.out.println("	   You must either use ReInit() or set the JavaCC option STATIC to false");
-            System.out.println("	   during parser generation.");
-            throw new Error();
-        }
-        jj_initialized_once = true;
-        token_source = tm;
-        token = new Token();
-        jj_ntk = -1;
-        jj_gen = 0;
-        for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+//Unary.
+//U -> ('-'F) | F
+  static final public Expression unary() throws ParseException {Expression a;
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case 21:{
+      jj_consume_token(21);
+      a = factor();
+{if ("" != null) return new Negative(a);}
+      break;
+      }
+    case NUMBER:
+    case 12:{
+      a = factor();
+{if ("" != null) return new Positive(a);}
+      break;
+      }
+    case STRING:{
+      a = string();
+{if ("" != null) return a;}
+      break;
+      }
+    default:
+      jj_la1[9] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
     }
+    throw new Error("Missing return statement in function");
+}
 
-    /** Reinitialise. */
-    public void ReInit(JaggerTokenManager tm) {
-        token_source = tm;
-        token = new Token();
-        jj_ntk = -1;
-        jj_gen = 0;
-        for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+// Factor of an expression.
+// F -> <NUMBER> | "(" E ")"
+  static final public Expression factor() throws ParseException {Token t; Expression e;
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case NUMBER:{
+      t = jj_consume_token(NUMBER);
+{if ("" != null) return new Constant(Float.parseFloat(t.toString()));}
+      break;
+      }
+    case 12:{
+      jj_consume_token(12);
+      e = expression();
+      jj_consume_token(13);
+{if ("" != null) return e;}
+      break;
+      }
+    default:
+      jj_la1[10] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
     }
+    throw new Error("Missing return statement in function");
+}
 
-    static private Token jj_consume_token(int kind) throws ParseException {
-        Token oldToken;
-        if ((oldToken = token).next != null) token = token.next;
-        else token = token.next = token_source.getNextToken();
-        jj_ntk = -1;
-        if (token.kind == kind) {
-            jj_gen++;
-            return token;
-        }
-        token = oldToken;
-        jj_kind = kind;
-        throw generateParseException();
-    }
+//String of an expression
+// S -> <STRING>
+  static final public Expression string() throws ParseException {Token t; Expression e;
+    t = jj_consume_token(STRING);
+{if ("" != null) return new ConstantString(t.toString());}
+    throw new Error("Missing return statement in function");
+}
 
-    /** Get the next Token. */
-    static final public Token getNextToken() {
-        if (token.next != null) token = token.next;
-        else token = token.next = token_source.getNextToken();
-        jj_ntk = -1;
-        jj_gen++;
-        return token;
-    }
+  static private boolean jj_initialized_once = false;
+  /** Generated Token Manager. */
+  static public JaggerTokenManager token_source;
+  static SimpleCharStream jj_input_stream;
+  /** Current token. */
+  static public Token token;
+  /** Next token. */
+  static public Token jj_nt;
+  static private int jj_ntk;
+  static private int jj_gen;
+  static final private int[] jj_la1 = new int[11];
+  static private int[] jj_la1_0;
+  static {
+	   jj_la1_init_0();
+	}
+	private static void jj_la1_init_0() {
+	   jj_la1_0 = new int[] {0x201930,0x201930,0x201130,0xfc000,0xfc000,0x300000,0x300000,0xc00000,0xc00000,0x201030,0x1010,};
+	}
 
-    /** Get the specific Token. */
-    static final public Token getToken(int index) {
-        Token t = token;
-        for (int i = 0; i < index; i++) {
-            if (t.next != null) t = t.next;
-            else t = t.next = token_source.getNextToken();
-        }
-        return t;
-    }
+  /** Constructor with InputStream. */
+  public Jagger(java.io.InputStream stream) {
+	  this(stream, null);
+  }
+  /** Constructor with InputStream and supplied encoding */
+  public Jagger(java.io.InputStream stream, String encoding) {
+	 if (jj_initialized_once) {
+	   System.out.println("ERROR: Second call to constructor of static parser.  ");
+	   System.out.println("	   You must either use ReInit() or set the JavaCC option STATIC to false");
+	   System.out.println("	   during parser generation.");
+	   throw new Error();
+	 }
+	 jj_initialized_once = true;
+	 try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
+	 token_source = new JaggerTokenManager(jj_input_stream);
+	 token = new Token();
+	 jj_ntk = -1;
+	 jj_gen = 0;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+  }
 
-    static private int jj_ntk_f() {
-        if ((jj_nt=token.next) == null)
-            return (jj_ntk = (token.next=token_source.getNextToken()).kind);
-        else
-            return (jj_ntk = jj_nt.kind);
-    }
+  /** Reinitialise. */
+  static public void ReInit(java.io.InputStream stream) {
+	  ReInit(stream, null);
+  }
+  /** Reinitialise. */
+  static public void ReInit(java.io.InputStream stream, String encoding) {
+	 try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
+	 token_source.ReInit(jj_input_stream);
+	 token = new Token();
+	 jj_ntk = -1;
+	 jj_gen = 0;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+  }
 
-    static private java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();
-    static private int[] jj_expentry;
-    static private int jj_kind = -1;
+  /** Constructor. */
+  public Jagger(java.io.Reader stream) {
+	 if (jj_initialized_once) {
+	   System.out.println("ERROR: Second call to constructor of static parser. ");
+	   System.out.println("	   You must either use ReInit() or set the JavaCC option STATIC to false");
+	   System.out.println("	   during parser generation.");
+	   throw new Error();
+	 }
+	 jj_initialized_once = true;
+	 jj_input_stream = new SimpleCharStream(stream, 1, 1);
+	 token_source = new JaggerTokenManager(jj_input_stream);
+	 token = new Token();
+	 jj_ntk = -1;
+	 jj_gen = 0;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+  }
 
-    /** Generate ParseException. */
-    static public ParseException generateParseException() {
-        jj_expentries.clear();
-        boolean[] la1tokens = new boolean[23];
-        if (jj_kind >= 0) {
-            la1tokens[jj_kind] = true;
-            jj_kind = -1;
-        }
-        for (int i = 0; i < 11; i++) {
-            if (jj_la1[i] == jj_gen) {
-                for (int j = 0; j < 32; j++) {
-                    if ((jj_la1_0[i] & (1<<j)) != 0) {
-                        la1tokens[j] = true;
-                    }
-                }
-            }
-        }
-        for (int i = 0; i < 23; i++) {
-            if (la1tokens[i]) {
-                jj_expentry = new int[1];
-                jj_expentry[0] = i;
-                jj_expentries.add(jj_expentry);
-            }
-        }
-        int[][] exptokseq = new int[jj_expentries.size()][];
-        for (int i = 0; i < jj_expentries.size(); i++) {
-            exptokseq[i] = jj_expentries.get(i);
-        }
-        return new ParseException(token, exptokseq, tokenImage);
-    }
+  /** Reinitialise. */
+  static public void ReInit(java.io.Reader stream) {
+	if (jj_input_stream == null) {
+	   jj_input_stream = new SimpleCharStream(stream, 1, 1);
+	} else {
+	   jj_input_stream.ReInit(stream, 1, 1);
+	}
+	if (token_source == null) {
+ token_source = new JaggerTokenManager(jj_input_stream);
+	}
 
-    static private boolean trace_enabled;
+	 token_source.ReInit(jj_input_stream);
+	 token = new Token();
+	 jj_ntk = -1;
+	 jj_gen = 0;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+  }
 
-    /** Trace enabled. */
-    static final public boolean trace_enabled() {
-        return trace_enabled;
-    }
+  /** Constructor with generated Token Manager. */
+  public Jagger(JaggerTokenManager tm) {
+	 if (jj_initialized_once) {
+	   System.out.println("ERROR: Second call to constructor of static parser. ");
+	   System.out.println("	   You must either use ReInit() or set the JavaCC option STATIC to false");
+	   System.out.println("	   during parser generation.");
+	   throw new Error();
+	 }
+	 jj_initialized_once = true;
+	 token_source = tm;
+	 token = new Token();
+	 jj_ntk = -1;
+	 jj_gen = 0;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+  }
 
-    /** Enable tracing. */
-    static final public void enable_tracing() {
-    }
+  /** Reinitialise. */
+  public void ReInit(JaggerTokenManager tm) {
+	 token_source = tm;
+	 token = new Token();
+	 jj_ntk = -1;
+	 jj_gen = 0;
+	 for (int i = 0; i < 11; i++) jj_la1[i] = -1;
+  }
 
-    /** Disable tracing. */
-    static final public void disable_tracing() {
-    }
+  static private Token jj_consume_token(int kind) throws ParseException {
+	 Token oldToken;
+	 if ((oldToken = token).next != null) token = token.next;
+	 else token = token.next = token_source.getNextToken();
+	 jj_ntk = -1;
+	 if (token.kind == kind) {
+	   jj_gen++;
+	   return token;
+	 }
+	 token = oldToken;
+	 jj_kind = kind;
+	 throw generateParseException();
+  }
+
+
+/** Get the next Token. */
+  static final public Token getNextToken() {
+	 if (token.next != null) token = token.next;
+	 else token = token.next = token_source.getNextToken();
+	 jj_ntk = -1;
+	 jj_gen++;
+	 return token;
+  }
+
+/** Get the specific Token. */
+  static final public Token getToken(int index) {
+	 Token t = token;
+	 for (int i = 0; i < index; i++) {
+	   if (t.next != null) t = t.next;
+	   else t = t.next = token_source.getNextToken();
+	 }
+	 return t;
+  }
+
+  static private int jj_ntk_f() {
+	 if ((jj_nt=token.next) == null)
+	   return (jj_ntk = (token.next=token_source.getNextToken()).kind);
+	 else
+	   return (jj_ntk = jj_nt.kind);
+  }
+
+  static private java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();
+  static private int[] jj_expentry;
+  static private int jj_kind = -1;
+
+  /** Generate ParseException. */
+  static public ParseException generateParseException() {
+	 jj_expentries.clear();
+	 boolean[] la1tokens = new boolean[24];
+	 if (jj_kind >= 0) {
+	   la1tokens[jj_kind] = true;
+	   jj_kind = -1;
+	 }
+	 for (int i = 0; i < 11; i++) {
+	   if (jj_la1[i] == jj_gen) {
+		 for (int j = 0; j < 32; j++) {
+		   if ((jj_la1_0[i] & (1<<j)) != 0) {
+			 la1tokens[j] = true;
+		   }
+		 }
+	   }
+	 }
+	 for (int i = 0; i < 24; i++) {
+	   if (la1tokens[i]) {
+		 jj_expentry = new int[1];
+		 jj_expentry[0] = i;
+		 jj_expentries.add(jj_expentry);
+	   }
+	 }
+	 int[][] exptokseq = new int[jj_expentries.size()][];
+	 for (int i = 0; i < jj_expentries.size(); i++) {
+	   exptokseq[i] = jj_expentries.get(i);
+	 }
+	 return new ParseException(token, exptokseq, tokenImage);
+  }
+
+  static private boolean trace_enabled;
+
+/** Trace enabled. */
+  static final public boolean trace_enabled() {
+	 return trace_enabled;
+  }
+
+  /** Enable tracing. */
+  static final public void enable_tracing() {
+  }
+
+  /** Disable tracing. */
+  static final public void disable_tracing() {
+  }
 
 }

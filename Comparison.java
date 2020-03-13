@@ -3,6 +3,7 @@ public abstract class Comparison implements Expression
 {
     protected Expression e1;
     protected Expression e2;
+    protected Type t=Type.FLOAT;
     public Comparison(Expression e1, Expression e2)
     {
         this.e1=e1;

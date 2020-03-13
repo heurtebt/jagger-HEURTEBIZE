@@ -7,5 +7,5 @@
  */
 public enum Type
 {
-    FLOAT,STRING
+    FLOAT,STRING,VOID
 }

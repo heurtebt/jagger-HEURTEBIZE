@@ -20,6 +20,7 @@ SKIP: { " " | "\r" | "\t" }
 TOKEN:
 {
     < NUMBER: (<DIGIT>)+ ("." (<DIGIT>)*)? >  // A decimal number.
+|	<STRING: "\""(["a"-"z","A"-"Z","_","0"-"9"])*"\"">		  			  // A string containing any character
 |   < DIGIT: ["0"-"9"] >                      // A decimal digit.
 |   < EOL: "\n" >                             // End of line.
 |   < IF: "if" >                              // If.
@@ -37,10 +38,16 @@ void mainloop():
       a=expression() <EOL>
       {
         VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
-        VisitorEvaluator eval = new VisitorEvaluator();
+        VisitorTypeChecker tp = new VisitorTypeChecker();        
         a.accept(pp);
-        a.accept(eval);
-        System.out.println(pp.prettyPrint()+"=>"+eval.evaluator());
+        a.accept(tp);
+        if(!tp.hasError()){
+			VisitorEvaluator eval = new VisitorEvaluator();
+			a.accept(eval);
+			System.out.println(pp.prettyPrint()+"=>"+eval.evaluator());
+		}else{
+			System.out.println("The Type Checker found an error!");
+		}
       }
     )*
     <EOF>
@@ -62,7 +69,7 @@ Expression expression():
 Expression expressionITE():
 {Expression a,b,c;}
 {
-    <IF> a=expressionComp() <THEN> b=expressionITE() <ELSE> c=expressionITE() { return new IfThenElse(a,b,c); }
+    <IF> a=expressionITE() <THEN> b=expressionITE() <ELSE> c=expressionITE() { return new IfThenElse(a,b,c); }
     | a=expressionComp() { return a; }
 }
 
@@ -91,7 +98,7 @@ Expression expressionAddSub():
     (
       "+" b=expressionAddSub() { a = new Add(a,b); }
     | "-" b=expressionAddSub() { a = new Substract(a,b); }
-    )? { return a; }
+    )?{ return a; }
 }
 
 // Term.
@@ -113,6 +120,7 @@ Expression unary():
 {
     "-" a=factor() { return new Negative(a); }
     | a=factor() { return new Positive(a); }
+    | a= string(){ return a; }
 }
 
 // Factor of an expression.
@@ -123,3 +131,13 @@ Expression factor():
       t=<NUMBER> { return new Constant(Float.parseFloat(t.toString())); }
     | "(" e=expression() ")" { return e; }
 }
+
+//String of an expression
+// S -> <STRING>
+Expression string():
+{ Token t; Expression e; }
+{
+      
+    t=<STRING> { return new ConstantString(t.toString()); }
+}
+
