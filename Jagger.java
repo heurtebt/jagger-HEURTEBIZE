@@ -29,13 +29,14 @@ public class Jagger implements JaggerConstants {
       a = expression();
       jj_consume_token(EOL);
 VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
-        VisitorTypeChecker tp = new VisitorTypeChecker();
         a.accept(pp);
+        System.out.println("\nPretty Print :-------------\n\n"+pp.prettyPrint()+"\n\n---------------------------");
+        VisitorTypeChecker tp = new VisitorTypeChecker();
         a.accept(tp);
         if(!tp.hasError()){
                         VisitorEvaluator eval = new VisitorEvaluator();
                         a.accept(eval);
-                        System.out.println(pp.prettyPrint()+"=>"+eval.evaluator());
+                        System.out.println("=>"+eval.evaluator());
                 }else{
                         System.out.println("The Type Checker found an error!");
                 }

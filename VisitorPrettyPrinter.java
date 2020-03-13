@@ -2,7 +2,7 @@ public class VisitorPrettyPrinter extends Visitor
 {
     private String pp;
     public String prettyPrint(){
-        return (pp.isEmpty())?pp:pp+"\n";
+        return pp;
     }
 
     public void visit(Negative n){
