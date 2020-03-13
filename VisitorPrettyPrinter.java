@@ -100,6 +100,10 @@ public class VisitorPrettyPrinter extends Visitor
     public void visit(Constant c){
         pp = ""+c.i;        
     }
+    
+    public void visit(ConstantString cs){
+        pp = "\""+cs.i+"\"";        
+    }
 
     public void visit(IfThenElse ite){
         ite.e1.accept(this);
@@ -108,12 +112,11 @@ public class VisitorPrettyPrinter extends Visitor
         String tmp2 = pp;
         ite.e3.accept(this);
         String tmp3 = pp;
-        pp = "if "+tmp1+" then {"+tmp2+"} else {"+tmp3+"}" ;
+        pp = "if "+tmp1+" then {\n"+tmp2+"\n} else {\n"+tmp3+"\n}" ;
     }
 
     public void visit(Print p){
         p.e.accept(this);
-        pp="";
-        //pp = "print("+pp+")";        
+        pp = "print("+pp+")";        
     }
 }

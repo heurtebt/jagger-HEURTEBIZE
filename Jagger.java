@@ -14,10 +14,11 @@ public class Jagger implements JaggerConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case NUMBER:
+      case STRING:
       case IF:
       case PRINT:
-      case 11:
-      case 20:{
+      case 12:
+      case 21:{
         ;
         break;
         }
@@ -28,10 +29,16 @@ public class Jagger implements JaggerConstants {
       a = expression();
       jj_consume_token(EOL);
 VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
-        VisitorEvaluator eval = new VisitorEvaluator();
+        VisitorTypeChecker tp = new VisitorTypeChecker();
         a.accept(pp);
-        a.accept(eval);
-        System.out.println(pp.prettyPrint()+"=>"+eval.evaluator());
+        a.accept(tp);
+        if(!tp.hasError()){
+                        VisitorEvaluator eval = new VisitorEvaluator();
+                        a.accept(eval);
+                        System.out.println(pp.prettyPrint()+"=>"+eval.evaluator());
+                }else{
+                        System.out.println("The Type Checker found an error!");
+                }
     }
     jj_consume_token(0);
 }
@@ -44,16 +51,17 @@ VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case PRINT:{
       jj_consume_token(PRINT);
-      jj_consume_token(11);
-      a = expressionITE();
       jj_consume_token(12);
+      a = expressionITE();
+      jj_consume_token(13);
 {if ("" != null) return new Print(a);}
       break;
       }
     case NUMBER:
+    case STRING:
     case IF:
-    case 11:
-    case 20:{
+    case 12:
+    case 21:{
       a = expressionITE();
 {if ("" != null) return a;}
       break;
@@ -72,7 +80,7 @@ VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case IF:{
       jj_consume_token(IF);
-      a = expressionComp();
+      a = expressionITE();
       jj_consume_token(THEN);
       b = expressionITE();
       jj_consume_token(ELSE);
@@ -81,8 +89,9 @@ VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
       break;
       }
     case NUMBER:
-    case 11:
-    case 20:{
+    case STRING:
+    case 12:
+    case 21:{
       a = expressionComp();
 {if ("" != null) return a;}
       break;
@@ -100,45 +109,45 @@ VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
   static final public Expression expressionComp() throws ParseException {Expression a,b;
     a = expressionAddSub();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case 13:
     case 14:
     case 15:
     case 16:
     case 17:
-    case 18:{
+    case 18:
+    case 19:{
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 13:{
-        jj_consume_token(13);
-        b = expressionComp();
-a = new Equal(a,b);
-        break;
-        }
       case 14:{
         jj_consume_token(14);
         b = expressionComp();
-a = new NotEqual(a,b);
+a = new Equal(a,b);
         break;
         }
       case 15:{
         jj_consume_token(15);
         b = expressionComp();
-a = new Less(a,b);
+a = new NotEqual(a,b);
         break;
         }
       case 16:{
         jj_consume_token(16);
         b = expressionComp();
-a = new More(a,b);
+a = new Less(a,b);
         break;
         }
       case 17:{
         jj_consume_token(17);
         b = expressionComp();
-a = new MoreOrEqual(a,b);
+a = new More(a,b);
         break;
         }
       case 18:{
         jj_consume_token(18);
+        b = expressionComp();
+a = new MoreOrEqual(a,b);
+        break;
+        }
+      case 19:{
+        jj_consume_token(19);
         b = expressionComp();
 a = new LessOrEqual(a,b);
         break;
@@ -163,17 +172,17 @@ a = new LessOrEqual(a,b);
   static final public Expression expressionAddSub() throws ParseException {Expression a,b;
     a = term();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case 19:
-    case 20:{
+    case 20:
+    case 21:{
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 19:{
-        jj_consume_token(19);
+      case 20:{
+        jj_consume_token(20);
         b = expressionAddSub();
 a = new Add(a,b);
         break;
         }
-      case 20:{
-        jj_consume_token(20);
+      case 21:{
+        jj_consume_token(21);
         b = expressionAddSub();
 a = new Substract(a,b);
         break;
@@ -200,8 +209,8 @@ a = new Substract(a,b);
     label_2:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 21:
-      case 22:{
+      case 22:
+      case 23:{
         ;
         break;
         }
@@ -210,14 +219,14 @@ a = new Substract(a,b);
         break label_2;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 21:{
-        jj_consume_token(21);
+      case 22:{
+        jj_consume_token(22);
         b = factor();
 a = new Multiply(a,b);
         break;
         }
-      case 22:{
-        jj_consume_token(22);
+      case 23:{
+        jj_consume_token(23);
         b = factor();
 a = new Divide(a,b);
         break;
@@ -236,16 +245,21 @@ a = new Divide(a,b);
 //U -> ('-'F) | F
   static final public Expression unary() throws ParseException {Expression a;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case 20:{
-      jj_consume_token(20);
+    case 21:{
+      jj_consume_token(21);
       a = factor();
 {if ("" != null) return new Negative(a);}
       break;
       }
     case NUMBER:
-    case 11:{
+    case 12:{
       a = factor();
 {if ("" != null) return new Positive(a);}
+      break;
+      }
+    case STRING:{
+      a = string();
+{if ("" != null) return a;}
       break;
       }
     default:
@@ -265,10 +279,10 @@ a = new Divide(a,b);
 {if ("" != null) return new Constant(Float.parseFloat(t.toString()));}
       break;
       }
-    case 11:{
-      jj_consume_token(11);
-      e = expression();
+    case 12:{
       jj_consume_token(12);
+      e = expression();
+      jj_consume_token(13);
 {if ("" != null) return e;}
       break;
       }
@@ -277,6 +291,14 @@ a = new Divide(a,b);
       jj_consume_token(-1);
       throw new ParseException();
     }
+    throw new Error("Missing return statement in function");
+}
+
+//String of an expression
+// S -> <STRING>
+  static final public Expression string() throws ParseException {Token t; Expression e;
+    t = jj_consume_token(STRING);
+{if ("" != null) return new ConstantString(t.toString());}
     throw new Error("Missing return statement in function");
 }
 
@@ -296,7 +318,7 @@ a = new Divide(a,b);
 	   jj_la1_init_0();
 	}
 	private static void jj_la1_init_0() {
-	   jj_la1_0 = new int[] {0x100c90,0x100c90,0x100890,0x7e000,0x7e000,0x180000,0x180000,0x600000,0x600000,0x100810,0x810,};
+	   jj_la1_0 = new int[] {0x201930,0x201930,0x201130,0xfc000,0xfc000,0x300000,0x300000,0xc00000,0xc00000,0x201030,0x1010,};
 	}
 
   /** Constructor with InputStream. */
@@ -442,7 +464,7 @@ a = new Divide(a,b);
   /** Generate ParseException. */
   static public ParseException generateParseException() {
 	 jj_expentries.clear();
-	 boolean[] la1tokens = new boolean[23];
+	 boolean[] la1tokens = new boolean[24];
 	 if (jj_kind >= 0) {
 	   la1tokens[jj_kind] = true;
 	   jj_kind = -1;
@@ -456,7 +478,7 @@ a = new Divide(a,b);
 		 }
 	   }
 	 }
-	 for (int i = 0; i < 23; i++) {
+	 for (int i = 0; i < 24; i++) {
 	   if (la1tokens[i]) {
 		 jj_expentry = new int[1];
 		 jj_expentry[0] = i;
