@@ -409,5 +409,15 @@ public class VisitorEvaluator extends Visitor
         else
             this.varsMap.put(a.v.decl.id,this.evs);
     }
+    
+    public void visit(While w){
+        w.e.accept(this);
+        while(this.evf!=0){
+            for (Expression e : w.inst){
+                e.accept(this);
+            }
+            w.e.accept(this);
+        }
+    }
 
 }
