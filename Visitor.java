@@ -17,4 +17,7 @@ public abstract class Visitor
     public abstract void visit(IfThenElse ite);
     public abstract void visit(Print p);
     public abstract void visit(ConstantString cs);
+    public abstract void visit(Variable v);
+    public abstract void visit(VariableDecl vd);
+    public abstract void visit(Scope s);
 }

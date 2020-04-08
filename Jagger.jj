@@ -3,104 +3,162 @@ options { LOOKAHEAD=1; FORCE_LA_CHECK=true; }
 
 // Fonction principale
 PARSER_BEGIN(Jagger)
+
+import java.io.*;
 public class Jagger
 {
-    public static void main(String args[]) throws ParseException
+    public static Scope initial_scope;
+    public static void main(String args[]) throws ParseException, FileNotFoundException
     {
-        Jagger parser = new Jagger(System.in);
+        File f = new File(args[0]);
+        InputStream is = new FileInputStream(f);
+        Jagger parser = new Jagger(is);
+        Scope initial_scope = new Scope();
         parser.mainloop();
     }
 }
 PARSER_END(Jagger)
 
 // Characters to ignore.
-SKIP: { " " | "\r" | "\t" }
+SKIP: { " " | "\r" | "\t" | "\n" | "," }
 
 // Token specifications.
 TOKEN:
 {
     < NUMBER: (<DIGIT>)+ ("." (<DIGIT>)*)? >  // A decimal number.
-|	<STRING: "\""(["a"-"z","A"-"Z","_","0"-"9"])*"\"">		  			  // A string containing any character
+|  	<STRING: "\""(["a"-"z","A"-"Z","_","0"-"9"])*"\"">// A string containing any alphanumerical character.
 |   < DIGIT: ["0"-"9"] >                      // A decimal digit.
-|   < EOL: "\n" >                             // End of line.
 |   < IF: "if" >                              // If.
 |   < THEN: "then" >                          // Then.
 |   < ELSE: "else" >                          // Else.
-|   <PRINT: "print" >                         // Print keyword.
+|   < PRINT: "print" >                         // Print keyword.
+|   < LET: "let" >                             //Let.
+|   < IN: "in" >                               //In.
+|   < END: "end" >                             //End.
+|   < VAR: "var" >                             //Var.
+|   < VARNAME: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9"])*>          //VariableId.
+|   <ASSIGN: ":=" >                           //Assign.
 }
 
 // Main lopp: read expressions on a line until end of file.
-//     mainloop → (expression <EOL>)* <EOF>
+//     mainloop → (expression <EOF>)* <EOF>
 void mainloop():
 { Expression a; }
 {
     (
-      a=expression() <EOL>
+      a=scope() <EOF>
       {
+        System.out.println("\nPretty Print :-------------\n\n");
         VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
         a.accept(pp);
-        System.out.println("\nPretty Print :-------------\n\n"+pp.prettyPrint()+"\n\n---------------------------");
-        VisitorTypeChecker tp = new VisitorTypeChecker();        
+        System.out.println("\n\n---------------------------\nBinder :-------------\n\n");
+        VisitorBinder vb = new VisitorBinder();
+        a.accept(vb);
+        System.out.println("\n\n---------------------------\nRenamer :-------------\n\n");
+        VisitorRenamer vr = new VisitorRenamer();
+        a.accept(vr);
+        System.out.println("\n\n---------------------------\nType Checker :-------------\n\n");
+        VisitorTypeChecker tp = new VisitorTypeChecker();
         a.accept(tp);
         if(!tp.hasError()){
-			VisitorEvaluator eval = new VisitorEvaluator();
-			a.accept(eval);
-			System.out.println("=>"+eval.evaluator());
-		}else{
-			System.out.println("The Type Checker found an error!");
-		}
-      }
+             System.out.println("OK\n\n---------------------------\nEvaluator :-------------\n\n");
+			       VisitorEvaluator eval = new VisitorEvaluator();
+		         a.accept(eval);
+        }else{
+            System.out.println("The Type Checker found an error!\n\n---------------------------");
+		    }
+    }
     )*
     <EOF>
 }
 
-//
 
-//Expression (Print)
-//Ep -> 'print(' Eite ')'|Eite
-Expression expression():
+//Scope
+//S -> let (D)* in (Ep)+ end
+Expression scope():
+{Expression e; Scope s= new Scope(); initial_scope = s;}
+{
+    <LET> (declaration())*
+    <IN> (e=statement(){s.inst.add(e);})+
+    <END> {return s;}
+}
+
+
+//Declaration
+//D -> var VARNAME := (Comp|ITE)
+void declaration():
+{Token t; Expression e;}
+{
+    <VAR> t=<VARNAME> <ASSIGN>
+    (e=ifthenelse()|e=comparison())
+    {initial_scope.addDeclaration(t.toString(),new VariableDecl(t.toString(),e));}
+}
+
+
+//Statement
+//S -> E
+Expression statement():
+{Expression e;}
+{
+  (
+    e=print()
+  | e=ifthenelse()
+  | e=comparison()
+  | e=scope()
+  ){return e;}
+}
+
+
+//Print
+//P -> 'print(' Comp ')'
+Expression print():
 {Expression a;}
 {
-    <PRINT> "(" a=expressionITE() ")" { return new Print(a); }
-    | a=expressionITE() { return a; }
+    <PRINT> "(" a=comparison() ")" { return new Print(a); }
 }
 
-//Expression (If-Then-Else)*
-//Eite -> 'if' Ec 'then' Eite 'else' Eite | Ec
-Expression expressionITE():
+
+//If-Then-Else
+//ITE -> 'if' (Comp|ITE) 'then' S 'else' S
+Expression ifthenelse():
 {Expression a,b,c;}
 {
-    <IF> a=expressionITE() <THEN> b=expressionITE() <ELSE> c=expressionITE() { return new IfThenElse(a,b,c); }
-    | a=expressionComp() { return a; }
+    <IF> (a=ifthenelse()|a=comparison())
+    <THEN> b=statement()
+    <ELSE> c=statement()
+    { return new IfThenElse(a,b,c); }
 }
 
-// Expression (comparison).
-// Ec -> E ('='E | '<>'E | '<'E | '>'E | '>='E | '<='E)*
-Expression expressionComp():
+
+// Comparison
+// Comp -> E ('='E | '<>'E | '<'E | '>'E | '>='E | '<='E)*
+Expression comparison():
 { Expression a,b; }
 {
-    a=expressionAddSub()
+    a=AddSub()
     (
-      "=" b=expressionComp() { a = new Equal(a,b); }
-    | "<>" b=expressionComp() { a = new NotEqual(a,b); }
-    | "<" b=expressionComp() { a = new Less(a,b); }
-    | ">" b=expressionComp() { a = new More(a,b); }
-    | ">=" b=expressionComp() { a = new MoreOrEqual(a,b); }
-    | "<=" b=expressionComp() { a = new LessOrEqual(a,b); }
+      "=" b=comparison() { a = new Equal(a,b); }
+    | "<>" b=comparison() { a = new NotEqual(a,b); }
+    | "<" b=comparison() { a = new Less(a,b); }
+    | ">" b=comparison() { a = new More(a,b); }
+    | ">=" b=comparison() { a = new MoreOrEqual(a,b); }
+    | "<=" b=comparison() { a = new LessOrEqual(a,b); }
     )? { return a; }
 }
 
-// Expression (the axiom).
+
+// AddSub
 // E -> T ('+'T | '-'T)*
-Expression expressionAddSub():
+Expression AddSub():
 { Expression a,b; }
 {
     a=term()
     (
-      "+" b=expressionAddSub() { a = new Add(a,b); }
-    | "-" b=expressionAddSub() { a = new Substract(a,b); }
+      "+" b=AddSub() { a = new Add(a,b); }
+    | "-" b=AddSub() { a = new Substract(a,b); }
     )?{ return a; }
 }
+
 
 // Term.
 // T -> U ('*'U | '/'U)*
@@ -114,31 +172,24 @@ Expression term():
     )* { return a; }
 }
 
+
 //Unary.
 //U -> ('-'F) | F
 Expression unary():
 {Expression a;}
 {
     "-" a=factor() { return new Negative(a); }
-    | a=factor() { return new Positive(a); }
-    | a= string(){ return a; }
+    | a= factor(){ return a; }
 }
 
+
 // Factor of an expression.
-// F -> <NUMBER> | "(" E ")"
+// F -> <VARNAME>|<NUMBER>|<STRING>| "(" E ")"
 Expression factor():
 { Token t; Expression e; }
 {
-      t=<NUMBER> { return new Constant(Float.parseFloat(t.toString())); }
-    | "(" e=expression() ")" { return e; }
+      t=<VARNAME> {return new Variable(t.toString());}
+    | t=<NUMBER> { return new Constant(Float.parseFloat(t.toString())); }
+    | t=<STRING> { return new ConstantString(t.toString()); }
+    | "(" e=comparison() ")" { return e; }
 }
-
-//String of an expression
-// S -> <STRING>
-Expression string():
-{ Token t; Expression e; }
-{
-      
-    t=<STRING> { return new ConstantString(t.toString()); }
-}
-

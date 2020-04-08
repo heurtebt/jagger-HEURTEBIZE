@@ -147,7 +147,8 @@ public class VisitorTypeChecker extends Visitor
         ite.e2.accept(this);           
         Type ttmp1 = t;
         ite.e3.accept(this);
-        Type ttmp2 = t;
+        Type ttmp2 = t;        
+        ite.t = ttmp1;
         if(!ttmp1.equals(ttmp2)){
             this.b=false;
         }
@@ -160,4 +161,33 @@ public class VisitorTypeChecker extends Visitor
     public void visit(ConstantString cs){
         t= cs.t;
     }
+    
+    public void visit(Variable v){
+        v.decl.accept(this);
+        switch(t){
+            case FLOAT:
+                System.out.println("FLOAT var "+v.id);
+                break;
+            case STRING:
+                System.out.println("STRING var "+v.id);
+                break;
+            default:
+                this.b=false;
+        }
+    }
+    
+    public void visit(VariableDecl vd){
+        t= vd.t;
+    }
+    
+    public void visit(Scope s){
+        for (VariableDecl vd : s.vars.values()){
+            vd.value.accept(this);
+            vd.t=this.t;
+        }
+        for (Expression e : s.inst){
+            e.accept(this);
+        }
+    }
+
 } 

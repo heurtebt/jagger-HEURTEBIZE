@@ -1,19 +1,15 @@
+import java.util.HashMap;
 public class VisitorEvaluator extends Visitor
 {
     private float evf;
     private String evs;
-    Type t;
-    public String evaluator(){
-        switch(t){
-            case FLOAT:{
-                return evf+"";
-            }
-            case STRING :{
-                return evs;
-            }
-            default :
-            return "An error occured!";
-        }
+    private Type t;    
+    private HashMap <String,String> varsMap;
+
+    public VisitorEvaluator(){
+        this.evf = 0;
+        this.evs = "";
+        this.varsMap = new HashMap<String,String>();
     }
 
     public void visit(Negative n){
@@ -369,6 +365,41 @@ public class VisitorEvaluator extends Visitor
 
     public void visit(Print p){
         p.e.accept(this);
+        switch(t){
+            case FLOAT:
+                System.out.println(this.evf);
+                break;
+            case STRING:       
+                System.out.println(this.evs);
+                break;
+            default:
+                System.out.println("An error occured.");
+        }
+    }
+
+    public void visit(Variable v){
+        this.t = v.decl.t;
+        if(this.t.equals(Type.FLOAT))
+            this.evf = Float.parseFloat(this.varsMap.get(v.decl.id));
+        else
+            this.evs = this.varsMap.get(v.decl.id);
+    }
+
+    public void visit(VariableDecl vd){
+        vd.value.accept(this);
+        if(vd.t.equals(Type.FLOAT)){
+            this.varsMap.put(vd.id,Float.toString(this.evf));}
+        else
+            this.varsMap.put(vd.id,this.evs);
+    }
+
+    public void visit(Scope s){
+        for(VariableDecl vd : s.vars.values()){
+            vd.accept(this);
+        }
+        for (Expression e : s.inst){
+            e.accept(this);
+        }
     }
 
 }
