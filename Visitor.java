@@ -20,4 +20,5 @@ public abstract class Visitor
     public abstract void visit(Variable v);
     public abstract void visit(VariableDecl vd);
     public abstract void visit(Scope s);
+    public abstract void visit(Assignment a);
 }

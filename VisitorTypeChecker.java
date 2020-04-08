@@ -161,25 +161,25 @@ public class VisitorTypeChecker extends Visitor
     public void visit(ConstantString cs){
         t= cs.t;
     }
-    
+
     public void visit(Variable v){
         v.decl.accept(this);
         switch(t){
             case FLOAT:
-                System.out.println("FLOAT var "+v.id);
-                break;
+            System.out.println("FLOAT var "+v.id);
+            break;
             case STRING:
-                System.out.println("STRING var "+v.id);
-                break;
+            System.out.println("STRING var "+v.id);
+            break;
             default:
-                this.b=false;
+            this.b=false;
         }
     }
-    
+
     public void visit(VariableDecl vd){
         t= vd.t;
     }
-    
+
     public void visit(Scope s){
         for (VariableDecl vd : s.vars.values()){
             vd.value.accept(this);
@@ -188,6 +188,14 @@ public class VisitorTypeChecker extends Visitor
         for (Expression e : s.inst){
             e.accept(this);
         }
+    }
+
+    public void visit(Assignment a){
+        a.v.accept(this);
+        Type tt=this.t;
+        a.e.accept(this);
+        if (this.t!=tt)
+            this.b=false;
     }
 
 } 

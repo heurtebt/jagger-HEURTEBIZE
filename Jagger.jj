@@ -20,7 +20,7 @@ public class Jagger
 PARSER_END(Jagger)
 
 // Characters to ignore.
-SKIP: { " " | "\r" | "\t" | "\n" | "," }
+SKIP: { " " | "\r" | "\t" | "\n" }
 
 // Token specifications.
 TOKEN:
@@ -74,12 +74,13 @@ void mainloop():
 
 
 //Scope
-//S -> let (D)* in (Ep)+ end
+//S -> let (D)* in S(","S)*+ end
 Expression scope():
 {Expression e; Scope s= new Scope(); initial_scope = s;}
 {
     <LET> (declaration())*
-    <IN> (e=statement(){s.inst.add(e);})+
+    <IN> e=statement(){s.inst.add(e);}
+         ("," e=statement(){s.inst.add(e);})*
     <END> {return s;}
 }
 
@@ -94,6 +95,15 @@ void declaration():
     {initial_scope.addDeclaration(t.toString(),new VariableDecl(t.toString(),e));}
 }
 
+//Assignment
+//A -> <VARNAME> := (Comp|ITE)
+Expression assignment():
+{Token t; Expression e;}
+{
+    t=<VARNAME> <ASSIGN>(e=comparison()|e=ifthenelse())
+    {return new Assignment(new Variable(t.toString()),e);}
+}
+
 
 //Statement
 //S -> E
@@ -103,6 +113,7 @@ Expression statement():
   (
     e=print()
   | e=ifthenelse()
+  | e=assignment()
   | e=comparison()
   | e=scope()
   ){return e;}

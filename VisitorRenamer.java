@@ -87,4 +87,8 @@ public class VisitorRenamer extends Visitor
         }
     }
     
+    public void visit(Assignment a){
+        a.v.accept(this);a.e.accept(this);        
+    }
+    
 }
