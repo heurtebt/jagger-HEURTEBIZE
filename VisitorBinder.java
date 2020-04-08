@@ -104,4 +104,11 @@ public class VisitorBinder extends Visitor
     public void visit(Assignment a){
         a.v.accept(this); a.e.accept(this);
     }
+    
+    public void visit(While w){
+        w.e.accept(this);
+        for (Expression e : w.inst){
+            e.accept(this);
+        }
+    }
 }

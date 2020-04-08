@@ -135,7 +135,7 @@ public class VisitorPrettyPrinter extends Visitor
         }
         System.out.println("end");
     }
-    
+
     public void visit(Assignment a){
         System.out.print("(");
         a.v.accept(this);
@@ -144,4 +144,13 @@ public class VisitorPrettyPrinter extends Visitor
         System.out.print(")");
     }
 
+    public void visit(While w){
+        System.out.print("while ");
+        w.e.accept(this);
+        System.out.print(" do");
+        for (Expression e : w.inst){            
+            System.out.println();
+            e.accept(this);
+        }
+    }
 }

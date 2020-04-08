@@ -197,5 +197,12 @@ public class VisitorTypeChecker extends Visitor
         if (this.t!=tt)
             this.b=false;
     }
+    
+    public void visit(While w){
+        w.e.accept(this);
+        for (Expression e : w.inst){
+            e.accept(this);
+        }
+    }
 
 } 

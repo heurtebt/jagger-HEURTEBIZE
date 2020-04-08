@@ -36,8 +36,10 @@ TOKEN:
 |   < IN: "in" >                               //In.
 |   < END: "end" >                             //End.
 |   < VAR: "var" >                             //Var.
-|   < VARNAME: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9"])*>          //VariableId.
 |   <ASSIGN: ":=" >                           //Assign.
+|   <WHILE: "while">                          //While.
+|   <DO: "do">                                //Do.
+|   < VARNAME: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9"])*>          //VariableId.
 }
 
 // Main lopp: read expressions on a line until end of file.
@@ -95,6 +97,20 @@ void declaration():
     {initial_scope.addDeclaration(t.toString(),new VariableDecl(t.toString(),e));}
 }
 
+
+//While
+// W -> <WHILE> Comp <DO> S(,S)*
+Expression whilestatement():
+{Expression c,e; While w;}
+{
+    <WHILE> c=comparison() {w= new While(c);} <DO>
+    (
+        ("(" e=statement(){w.inst.add(e);} ("," e=statement(){w.inst.add(e);})*")")
+      | e=statement(){w.inst.add(e);}
+    ){return w;}
+}
+
+
 //Assignment
 //A -> <VARNAME> := (Comp|ITE)
 Expression assignment():
@@ -116,6 +132,7 @@ Expression statement():
   | e=assignment()
   | e=comparison()
   | e=scope()
+  | e=whilestatement()
   ){return e;}
 }
 
