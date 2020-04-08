@@ -39,6 +39,8 @@ TOKEN:
 |   <ASSIGN: ":=" >                           //Assign.
 |   <WHILE: "while">                          //While.
 |   <DO: "do">                                //Do.
+|   <FOR: "for">                              //For.
+|   <TO: "to">                                //To.
 |   < VARNAME: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9"])*>          //VariableId.
 }
 
@@ -98,8 +100,34 @@ void declaration():
 }
 
 
+//For
+// F -> <FOR> S <TO> S <DO> "("S(,S)*")"|S
+Expression forstatement():
+{Token t; Expression e,start,end; While w; Scope s=new Scope(); initial_scope=s;}
+{
+    <FOR>
+    t=<VARNAME> <ASSIGN> start=statement()
+    <TO> end=statement()
+    {
+      s.addDeclaration(t.toString(),new VariableDecl(t.toString(),start));
+      w = new While(new LessOrEqual(new Variable(t.toString()),end));
+    }
+    <DO>(
+        ("(" e=statement(){w.inst.add(e);} ("," e=statement(){w.inst.add(e);})*")")
+      | e=statement(){w.inst.add(e);}
+    )
+    {
+      w.inst.add(new Assignment(new Variable(t.toString()),new Add(
+                      new Variable(t.toString()),new Constant(1))));
+      s.inst.add(w);
+      return s;
+    }
+}
+
+
+
 //While
-// W -> <WHILE> Comp <DO> S(,S)*
+// W -> <WHILE> Comp <DO> "("S(,S)*")"|S
 Expression whilestatement():
 {Expression c,e; While w;}
 {
@@ -133,6 +161,7 @@ Expression statement():
   | e=comparison()
   | e=scope()
   | e=whilestatement()
+  | e=forstatement()
   ){return e;}
 }
 
