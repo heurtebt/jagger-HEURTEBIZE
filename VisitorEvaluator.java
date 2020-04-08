@@ -367,13 +367,13 @@ public class VisitorEvaluator extends Visitor
         p.e.accept(this);
         switch(t){
             case FLOAT:
-                System.out.println(this.evf);
-                break;
+            System.out.println(this.evf);
+            break;
             case STRING:       
-                System.out.println(this.evs);
-                break;
+            System.out.println(this.evs);
+            break;
             default:
-                System.out.println("An error occured.");
+            System.out.println("An error occured.");
         }
     }
 
@@ -400,6 +400,14 @@ public class VisitorEvaluator extends Visitor
         for (Expression e : s.inst){
             e.accept(this);
         }
+    }
+
+    public void visit(Assignment a){
+        a.e.accept(this);
+        if (this.t.equals(Type.FLOAT))
+            this.varsMap.put(a.v.decl.id,Float.toString(this.evf));
+        else
+            this.varsMap.put(a.v.decl.id,this.evs);
     }
 
 }

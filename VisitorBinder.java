@@ -100,4 +100,8 @@ public class VisitorBinder extends Visitor
         }
         this.env.pop();
     }
+    
+    public void visit(Assignment a){
+        a.v.accept(this); a.e.accept(this);
+    }
 }

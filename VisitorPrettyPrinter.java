@@ -123,7 +123,7 @@ public class VisitorPrettyPrinter extends Visitor
         vd.value.accept(this);
         System.out.println();
     }
-    
+
     public void visit(Scope s){
         System.out.println("let");
         for(VariableDecl vd : s.vars.values()){
@@ -134,6 +134,14 @@ public class VisitorPrettyPrinter extends Visitor
             e.accept(this);System.out.println();
         }
         System.out.println("end");
+    }
+    
+    public void visit(Assignment a){
+        System.out.print("(");
+        a.v.accept(this);
+        System.out.print(" := ");
+        a.e.accept(this);
+        System.out.print(")");
     }
 
 }
