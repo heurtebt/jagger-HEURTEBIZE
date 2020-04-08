@@ -2,7 +2,7 @@
 public class IfThenElse implements Expression
 {
     protected Expression e1, e2, e3;
-
+    protected Type t;
     public IfThenElse(Expression e1, Expression e2, Expression e3)
     {
         this.e1=e1;
