@@ -13,10 +13,6 @@ public class VisitorRenamer extends Visitor
         n.e.accept(this);
     }
 
-    public void visit(Positive p){
-        p.e.accept(this);
-    }
-
     public void visit(Add a){
         a.e1.accept(this); a.e2.accept(this);
     }

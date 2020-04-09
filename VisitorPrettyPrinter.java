@@ -6,10 +6,6 @@ public class VisitorPrettyPrinter extends Visitor
         System.out.print(")");
     }
 
-    public void visit(Positive p){
-        p.e.accept(this);
-    }
-
     public void visit(Add a){
         System.out.print("(");
         a.e1.accept(this);

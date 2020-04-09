@@ -18,12 +18,6 @@ public class VisitorEvaluator extends Visitor
         evf = -tmp;
     }
 
-    public void visit(Positive p){
-        p.e.accept(this);
-        float tmp = evf;
-        evf = tmp;
-    }
-
     public void visit(Add a){        
         float tmp1=(float)0.0, tmp2=(float)0.0;
         String tmps1="", tmps2="";
@@ -145,6 +139,7 @@ public class VisitorEvaluator extends Visitor
                 break;
             }
         }
+        this.t=Type.FLOAT;
     }
 
     public void visit(NotEqual neq){
@@ -184,6 +179,7 @@ public class VisitorEvaluator extends Visitor
                 break;
             }
         }
+        this.t=Type.FLOAT;
     }
 
     public void visit(More m){float tmp1=(float)0.0, tmp2=(float)0.0;
@@ -222,6 +218,7 @@ public class VisitorEvaluator extends Visitor
                 break;
             }
         }  
+        this.t=Type.FLOAT;
     }
 
     public void visit(MoreOrEqual meq){
@@ -260,6 +257,7 @@ public class VisitorEvaluator extends Visitor
                 evf = (tmps1.compareTo(tmps2)>=0)? 1 : 0;  
             }
         }
+        this.t=Type.FLOAT;
     }
 
     public void visit(Less l){
@@ -298,6 +296,7 @@ public class VisitorEvaluator extends Visitor
                 evf = (tmps1.compareTo(tmps2)<0)? 1 : 0; 
             }
         }    
+        this.t=Type.FLOAT;
     }
 
     public void visit(LessOrEqual leq){
@@ -336,6 +335,7 @@ public class VisitorEvaluator extends Visitor
                 evf = (tmps1.compareTo(tmps2)<=0)? 1 : 0; 
             }
         }
+        this.t=Type.FLOAT;
     }
 
     public void visit(Constant c){

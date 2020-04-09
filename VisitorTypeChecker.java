@@ -18,13 +18,6 @@ public class VisitorTypeChecker extends Visitor
         }
     }
 
-    public void visit(Positive p){
-        p.e.accept(this);
-        if (!t.equals(Type.FLOAT)){
-            this.b=false;
-        }
-    }
-
     public void visit(Add a){
         a.e1.accept(this);        
         Type ttmp1 = t;

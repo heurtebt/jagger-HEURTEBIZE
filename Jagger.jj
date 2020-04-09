@@ -26,17 +26,17 @@ SKIP: { " " | "\r" | "\t" | "\n" }
 TOKEN:
 {
     < NUMBER: (<DIGIT>)+ ("." (<DIGIT>)*)? >  // A decimal number.
-|  	<STRING: "\""(["a"-"z","A"-"Z","_","0"-"9"])*"\"">// A string containing any alphanumerical character.
+|  	<STRING: "\""(~["\""])*"\"" >             // A string.
 |   < DIGIT: ["0"-"9"] >                      // A decimal digit.
 |   < IF: "if" >                              // If.
 |   < THEN: "then" >                          // Then.
 |   < ELSE: "else" >                          // Else.
-|   < PRINT: "print" >                         // Print keyword.
-|   < LET: "let" >                             //Let.
-|   < IN: "in" >                               //In.
-|   < END: "end" >                             //End.
-|   < VAR: "var" >                             //Var.
-|   <ASSIGN: ":=" >                           //Assign.
+|   < PRINT: "print" >                        // Print keyword.
+|   < LET: "let" >                            //Let.
+|   < IN: "in" >                              //In.
+|   < END: "end" >                            //End.
+|   < VAR: "var" >                            //Var.
+|   <ASSIGN: ":=" >                           /Assign.
 |   <WHILE: "while">                          //While.
 |   <DO: "do">                                //Do.
 |   <FOR: "for">                              //For.
