@@ -198,7 +198,7 @@ Expression ifthenelse():
 
 
 // Comparison
-Comp -> E ('='Comp | '<>'Comp | '<'Comp | '>'Comp | '>='Comp | '<='Comp)*
+//Comp -> E ('='Comp | '<>'Comp | '<'Comp | '>'Comp | '>='Comp | '<='Comp)*
 Expression comparison():
 { Expression a,b; }
 {
