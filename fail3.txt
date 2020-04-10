@@ -1,0 +1,4 @@
+let
+in
+  (for i := 1 to 2 do i, print(i))
+end

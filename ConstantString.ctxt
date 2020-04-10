@@ -1,7 +1,0 @@
-#BlueJ class context
-comment0.target=ConstantString
-comment1.params=i
-comment1.target=ConstantString(java.lang.String)
-comment2.params=v
-comment2.target=void\ accept(Visitor)
-numComments=3

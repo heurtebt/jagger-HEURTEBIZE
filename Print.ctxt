@@ -1,7 +1,0 @@
-#BlueJ class context
-comment0.target=Print
-comment1.params=e
-comment1.target=Print(Expression)
-comment2.params=v
-comment2.target=void\ accept(Visitor)
-numComments=3

@@ -1,9 +1,0 @@
-#BlueJ class context
-comment0.target=Scope
-comment1.params=
-comment1.target=Scope()
-comment2.params=id\ v
-comment2.target=void\ addDeclaration(java.lang.String,\ VariableDecl)
-comment3.params=v
-comment3.target=void\ accept(Visitor)
-numComments=4

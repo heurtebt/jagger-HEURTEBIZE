@@ -17,6 +17,10 @@ public class VisitorEvaluator extends Visitor
         float tmp = evf;
         evf = -tmp;
     }
+    
+    public void visit(Positive p){
+        p.e.accept(this);
+    }
 
     public void visit(Add a){        
         float tmp1=(float)0.0, tmp2=(float)0.0;
@@ -397,9 +401,7 @@ public class VisitorEvaluator extends Visitor
         for(VariableDecl vd : s.vars.values()){
             vd.accept(this);
         }
-        for (Expression e : s.inst){
-            e.accept(this);
-        }
+        s.inst.accept(this);
     }
 
     public void visit(Assignment a){
@@ -409,15 +411,18 @@ public class VisitorEvaluator extends Visitor
         else
             this.varsMap.put(a.v.decl.id,this.evs);
     }
-    
+
     public void visit(While w){
         w.e.accept(this);
         while(this.evf!=0){
-            for (Expression e : w.inst){
-                e.accept(this);
-            }
+            w.inst.accept(this);
             w.e.accept(this);
         }
     }
 
+    public void visit(Instructions i){
+        for (Expression e : i.inst){
+            e.accept(this);
+        }
+    }
 }

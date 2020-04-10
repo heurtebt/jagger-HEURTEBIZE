@@ -13,6 +13,10 @@ public class VisitorRenamer extends Visitor
         n.e.accept(this);
     }
 
+    public void visit(Positive p){
+        p.e.accept(this);
+    }
+
     public void visit(Add a){
         a.e1.accept(this); a.e2.accept(this);
     }
@@ -78,9 +82,7 @@ public class VisitorRenamer extends Visitor
         for (VariableDecl vd : s.vars.values()){
             vd.accept(this);
         }
-        for (Expression e : s.inst){
-            e.accept(this);
-        }
+        s.inst.accept(this);
     }
 
     public void visit(Assignment a){
@@ -89,7 +91,11 @@ public class VisitorRenamer extends Visitor
 
     public void visit(While w){
         w.e.accept(this);
-        for (Expression e : w.inst){
+        w.inst.accept(this);
+    }
+
+    public void visit(Instructions i){
+        for (Expression e : i.inst){
             e.accept(this);
         }
     }

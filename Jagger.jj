@@ -8,13 +8,13 @@ import java.io.*;
 public class Jagger
 {
     public static Scope initial_scope;
-    public static void main(String args[]) throws ParseException, FileNotFoundException
+    public static void main(String args[]) throws ParseException, FileNotFoundException, IOException
     {
         File f = new File(args[0]);
         InputStream is = new FileInputStream(f);
         Jagger parser = new Jagger(is);
-        Scope initial_scope = new Scope();
         parser.mainloop();
+        is.close();
     }
 }
 PARSER_END(Jagger)
@@ -36,7 +36,7 @@ TOKEN:
 |   < IN: "in" >                              //In.
 |   < END: "end" >                            //End.
 |   < VAR: "var" >                            //Var.
-|   <ASSIGN: ":=" >                           /Assign.
+|   <ASSIGN: ":=" >                           //Assign.
 |   <WHILE: "while">                          //While.
 |   <DO: "do">                                //Do.
 |   <FOR: "for">                              //For.
@@ -44,13 +44,13 @@ TOKEN:
 |   < VARNAME: ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9"])*>          //VariableId.
 }
 
-// Main lopp: read expressions on a line until end of file.
-//     mainloop → (expression <EOF>)* <EOF>
+// Main loop: read expressions on a file until the end.
+//     mainloop → expression <EOF>
 void mainloop():
 { Expression a; }
 {
-    (
-      a=scope() <EOF>
+
+      a=instructions() <EOF>
       {
         System.out.println("\nPretty Print :-------------\n\n");
         VisitorPrettyPrinter pp = new VisitorPrettyPrinter();
@@ -64,27 +64,51 @@ void mainloop():
         System.out.println("\n\n---------------------------\nType Checker :-------------\n\n");
         VisitorTypeChecker tp = new VisitorTypeChecker();
         a.accept(tp);
-        if(!tp.hasError()){
+        if(!(vb.hasError()||tp.hasError())){
              System.out.println("OK\n\n---------------------------\nEvaluator :-------------\n\n");
 			       VisitorEvaluator eval = new VisitorEvaluator();
 		         a.accept(eval);
         }else{
-            System.out.println("The Type Checker found an error!\n\n---------------------------");
+            System.out.println("\n\nError(s) has been found, the program cannot be evaluated.\n\n---------------------------");
 		    }
     }
-    )*
-    <EOF>
+}
+
+
+//Instruction
+//I -> S (","S)*
+Instructions instructions():
+{Expression e;Instructions i = new Instructions();}
+{
+    e=statement(){i.inst.add(e);}
+     ("," e=statement(){i.inst.add(e);})*
+    {return i;}
+}
+
+
+//Statement
+//S -> P|ITE|A|Scope|W|F
+Expression statement():
+{Expression e;}
+{
+  (
+    e=print()
+  | e=ifthenelse()
+  | e=assignment()
+  | e=scope()
+  | e=whilestatement()
+  | e=forstatement()
+  ){return e;}
 }
 
 
 //Scope
-//S -> let (D)* in S(","S)*+ end
+//Scope -> let (D)* in I end
 Expression scope():
-{Expression e; Scope s= new Scope(); initial_scope = s;}
+{Expression e; Instructions i; Scope s= new Scope(); initial_scope = s;}
 {
     <LET> (declaration())*
-    <IN> e=statement(){s.inst.add(e);}
-         ("," e=statement(){s.inst.add(e);})*
+    <IN>  i=instructions(){s.inst=i;}
     <END> {return s;}
 }
 
@@ -100,10 +124,21 @@ void declaration():
 }
 
 
+//Assignment
+//A -> Comp (:= (Comp|ITE))?
+Expression assignment():
+{Token t; Expression e,v;}
+{
+    v=comparison()
+    (<ASSIGN>(e=comparison()|e=ifthenelse()){return new Assignment((Variable)v,e);})?
+    {return v;}
+}
+
+
 //For
-// F -> <FOR> S <TO> S <DO> "("S(,S)*")"|S
+// F -> <FOR> S <TO> S <DO> "("I")"|S
 Expression forstatement():
-{Token t; Expression e,start,end; While w; Scope s=new Scope(); initial_scope=s;}
+{Token t; Expression e,start,end;Instructions iw,is; While w; Scope s=new Scope(); initial_scope=s;}
 {
     <FOR>
     t=<VARNAME> <ASSIGN> start=statement()
@@ -113,13 +148,15 @@ Expression forstatement():
       w = new While(new LessOrEqual(new Variable(t.toString()),end));
     }
     <DO>(
-        ("(" e=statement(){w.inst.add(e);} ("," e=statement(){w.inst.add(e);})*")")
-      | e=statement(){w.inst.add(e);}
-    )
+        (("(" iw=instructions() ")")
+      | e=statement(){iw = new Instructions(); iw.inst.add(e);})
+      )
     {
-      w.inst.add(new Assignment(new Variable(t.toString()),new Add(
+      iw.inst.add(new Assignment(new Variable(t.toString()),new Add(
                       new Variable(t.toString()),new Constant(1))));
-      s.inst.add(w);
+      w.inst=iw;
+      is = new Instructions(); is.inst.add(w);
+      s.inst=is;
       return s;
     }
 }
@@ -127,42 +164,15 @@ Expression forstatement():
 
 
 //While
-// W -> <WHILE> Comp <DO> "("S(,S)*")"|S
+// W -> <WHILE> Comp <DO> "("I")"|S
 Expression whilestatement():
-{Expression c,e; While w;}
+{Expression c,e; Instructions i; While w;}
 {
     <WHILE> c=comparison() {w= new While(c);} <DO>
     (
-        ("(" e=statement(){w.inst.add(e);} ("," e=statement(){w.inst.add(e);})*")")
-      | e=statement(){w.inst.add(e);}
+        (("(" i=instructions() ")")
+      | e=statement(){i = new Instructions(); i.inst.add(e);}){w.inst=i;}
     ){return w;}
-}
-
-
-//Assignment
-//A -> <VARNAME> := (Comp|ITE)
-Expression assignment():
-{Token t; Expression e;}
-{
-    t=<VARNAME> <ASSIGN>(e=comparison()|e=ifthenelse())
-    {return new Assignment(new Variable(t.toString()),e);}
-}
-
-
-//Statement
-//S -> E
-Expression statement():
-{Expression e;}
-{
-  (
-    e=print()
-  | e=ifthenelse()
-  | e=assignment()
-  | e=comparison()
-  | e=scope()
-  | e=whilestatement()
-  | e=forstatement()
-  ){return e;}
 }
 
 
@@ -188,7 +198,7 @@ Expression ifthenelse():
 
 
 // Comparison
-// Comp -> E ('='E | '<>'E | '<'E | '>'E | '>='E | '<='E)*
+Comp -> E ('='Comp | '<>'Comp | '<'Comp | '>'Comp | '>='Comp | '<='Comp)*
 Expression comparison():
 { Expression a,b; }
 {
@@ -231,17 +241,18 @@ Expression term():
 
 
 //Unary.
-//U -> ('-'F) | F
+//U -> ('-'F) | ('+'F) | F
 Expression unary():
 {Expression a;}
 {
     "-" a=factor() { return new Negative(a); }
+    | "+" a=factor() {return new Positive(a);}
     | a= factor(){ return a; }
 }
 
 
 // Factor of an expression.
-// F -> <VARNAME>|<NUMBER>|<STRING>| "(" E ")"
+// F -> <VARNAME>|<NUMBER>|<STRING>| "(" Comp ")"
 Expression factor():
 { Token t; Expression e; }
 {

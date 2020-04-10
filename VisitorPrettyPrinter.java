@@ -5,6 +5,10 @@ public class VisitorPrettyPrinter extends Visitor
         n.e.accept(this);
         System.out.print(")");
     }
+    
+    public void visit(Positive p){
+        p.e.accept(this);
+    }
 
     public void visit(Add a){
         System.out.print("(");
@@ -126,9 +130,7 @@ public class VisitorPrettyPrinter extends Visitor
             vd.accept(this);
         }
         System.out.println("in");
-        for (Expression e : s.inst){
-            e.accept(this);System.out.println();
-        }
+        s.inst.accept(this);
         System.out.println("end");
     }
 
@@ -143,10 +145,14 @@ public class VisitorPrettyPrinter extends Visitor
     public void visit(While w){
         System.out.print("while ");
         w.e.accept(this);
-        System.out.print(" do");
-        for (Expression e : w.inst){            
-            System.out.println();
-            e.accept(this);
+        System.out.println(" do\n(");
+        w.inst.accept(this);
+        System.out.println(")");
+    }
+    
+    public void visit(Instructions i){
+        for (Expression e : i.inst){
+            e.accept(this);System.out.println();
         }
     }
 }

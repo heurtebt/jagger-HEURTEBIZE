@@ -2,6 +2,7 @@ public abstract class Visitor
 {
 
     public abstract void visit(Negative n);
+    public abstract void visit(Positive p);
     public abstract void visit(Add a);
     public abstract void visit(Substract s);
     public abstract void visit(Multiply m);
@@ -21,4 +22,5 @@ public abstract class Visitor
     public abstract void visit(Scope s);
     public abstract void visit(Assignment a);
     public abstract void visit(While w);
+    public abstract void visit(Instructions i);
 }

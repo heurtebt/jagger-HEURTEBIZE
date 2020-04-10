@@ -1,3 +1,6 @@
+print("Batterie  de tests positif :"),
+print(-1),
+-1,
 let
   var res := 0
 in
@@ -6,10 +9,10 @@ in
   print("If-then-else support :"),
   print("Example 1 :"),
   res:=if 1 then 2 else 3,
-  print(res),  
+  print(res),
   print("Example 2 :"),
   res:=if if 0 then 1 else 2 then 1+2 else 2+3,
-  print(res),  
+  print(res),
   print("String support :"),
   let
     var a:="a"
@@ -22,10 +25,18 @@ in
   end,
   print("Var and scope support :"),
   print("Example 1 :"),
-  let in 1 + 1 end,
+  let
+    var foo := 1
+    var bar := 1 + foo
+    var baz := bar * bar
+  in
+    foo, bar * baz
+  end,
   print("Example 2 :"),
-  let var i := 1 in print(i) end,   
+  let in 1 + 1 end,
   print("Example 3 :"),
+  let var i := 1 in print(i) end,
+  print("Example 4 :"),
   let var i := 10
     in
     print(i),

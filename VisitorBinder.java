@@ -4,10 +4,16 @@ public class VisitorBinder extends Visitor
 {
     
     private Stack<LinkedHashMap<String,VariableDecl>> env;
+    private boolean b;
     
     public VisitorBinder()
     {
         this.env = new Stack<LinkedHashMap<String,VariableDecl>>();
+        this.b = true;
+    }
+    
+    public boolean hasError(){
+        return !this.b;
     }
     
     public void visit(Negative n){
@@ -16,6 +22,10 @@ public class VisitorBinder extends Visitor
 
     public void visit(Add a){
         a.e1.accept(this); a.e2.accept(this);
+    }
+    
+    public void visit(Positive p){
+        p.e.accept(this);
     }
     
     public void visit(Substract s){
@@ -79,8 +89,10 @@ public class VisitorBinder extends Visitor
                 break;
             }
         }
-        if(!match)
-            System.out.println(v.id+" does not exist.");
+        if(!match){
+            System.out.println("Error :"+v.id+" does not exist.");
+            this.b=false;
+        }
     }
     
     public void visit(VariableDecl vd){}
@@ -91,10 +103,9 @@ public class VisitorBinder extends Visitor
             vd.value.accept(this);
             this.env.peek().put(vd.id,vd);
         }
-        for (Expression e : s.inst){
-            e.accept(this);
-        }
+        s.inst.accept(this);
         this.env.pop();
+        this.b=!s.declError;
     }
     
     public void visit(Assignment a){
@@ -103,7 +114,11 @@ public class VisitorBinder extends Visitor
     
     public void visit(While w){
         w.e.accept(this);
-        for (Expression e : w.inst){
+        w.inst.accept(this);
+    }
+    
+    public void visit(Instructions i){
+        for (Expression e : i.inst){
             e.accept(this);
         }
     }
