@@ -87,7 +87,7 @@ Instructions instructions():
 
 
 //Statement
-//S -> P|ITE|A|Scope|W|F
+//S -> P|ITE|A|Scope|W|For
 Expression statement():
 {Expression e;}
 {
@@ -136,7 +136,7 @@ Expression assignment():
 
 
 //For
-// F -> <FOR> S <TO> S <DO> "("I")"|S
+// For -> <FOR> S <TO> S <DO> "("I")"|S
 Expression forstatement():
 {Token t; Expression e,start,end;Instructions iw,is; While w; Scope s=new Scope(); initial_scope=s;}
 {
