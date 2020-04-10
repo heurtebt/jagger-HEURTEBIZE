@@ -32,7 +32,7 @@
 
 
 Etant donné qu'il fallait un opérateur par lot, mon Jagger prend uniquement des fichiers en entrée.
-J'ai fait en sorte de respecter les énoncés, la fonctionnement est donc le suivant:
+J'ai fait en sorte de respecter les énoncés, le fonctionnement est donc le suivant:
 
 #### Flottants avec les bonnes priorités :
 Les unaires "+" et "-" sont prioritaires sur les binaires "*" et "/", eux mêmes prioritaires sur les binaires "+" et "-", qui sont eux prioritaires sur toutes les comparaisons.
